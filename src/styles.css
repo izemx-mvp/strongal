@@ -384,3 +384,18 @@
 @utility glow-float {
   animation: glow-float 3.4s ease-in-out infinite;
 }
+
+/* Aurora renforcée en mode nuit */
+.dark .aurora-root {
+  background:
+    radial-gradient(
+      120% 90% at 80% 0%,
+      color-mix(in oklab, var(--accent-soft) 70%, transparent),
+      transparent 62%
+    ),
+    var(--background);
+}
+.dark .aurora-blob {
+  filter: blur(90px);
+  opacity: 0.75;
+}
