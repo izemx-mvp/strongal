@@ -1,7 +1,19 @@
-import type { Config, Dossier, Repere } from "./data";
+import type { BaseComposant, Config, Dossier, Produit, Repere } from "./data";
+
+export type LigneProfil = {
+  profileId: string;
+  ref: string;
+  serie: string;
+  detail: string;
+  ml: number;
+  cout: number;
+};
 
 export type LigneRepere = {
   repere: Repere;
+  produitNom: string;
+  produitId: string;
+  profils: LigneProfil[];
   profileRef: string;
   profileSerie: string;
   profileId: string;
