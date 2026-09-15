@@ -16,6 +16,7 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
+import { CriteresQualification } from "@/components/criteres-qualification";
 import { CountUp, PageTransition } from "@/components/motion-bits";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -233,6 +234,7 @@ function ServiceClientPage() {
                 <TabsTrigger value="faq">FAQ</TabsTrigger>
                 <TabsTrigger value="documents">Documents</TabsTrigger>
                 <TabsTrigger value="infos">Infos pratiques</TabsTrigger>
+                <TabsTrigger value="qualification">Critères de qualification</TabsTrigger>
               </TabsList>
 
               {/* FAQ */}
@@ -533,6 +535,9 @@ function ServiceClientPage() {
                     </Button>
                   </div>
                 </Card>
+              </TabsContent>
+              <TabsContent value="qualification" className="mt-4">
+                <CriteresQualification />
               </TabsContent>
             </Tabs>
           </div>
