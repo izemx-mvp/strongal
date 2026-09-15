@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConfigurationRouteImport } from './routes/configuration'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ServiceClientRouteImport } from './routes/service-client'
+import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
+import { Route as ProspectsIndexRouteImport } from './routes/prospects.index'
+import { Route as ProspectsIdRouteImport } from './routes/prospects.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfigurationRoute = ConfigurationRouteImport.update({
+  id: '/configuration',
+  path: '/configuration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServiceClientRoute = ServiceClientRouteImport.update({
+  id: '/service-client',
+  path: '/service-client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DossiersIndexRoute = DossiersIndexRouteImport.update({
+  id: '/dossiers/',
+  path: '/dossiers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProspectsIndexRoute = ProspectsIndexRouteImport.update({
+  id: '/prospects/',
+  path: '/prospects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProspectsIdRoute = ProspectsIdRouteImport.update({
+  id: '/prospects/$id',
+  path: '/prospects/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/configuration': typeof ConfigurationRoute
+  '/dashboard': typeof DashboardRoute
+  '/service-client': typeof ServiceClientRoute
+  '/prospects/$id': typeof ProspectsIdRoute
+  '/dossiers/': typeof DossiersIndexRoute
+  '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/configuration': typeof ConfigurationRoute
+  '/dashboard': typeof DashboardRoute
+  '/service-client': typeof ServiceClientRoute
+  '/prospects/$id': typeof ProspectsIdRoute
+  '/dossiers': typeof DossiersIndexRoute
+  '/prospects': typeof ProspectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/configuration': typeof ConfigurationRoute
+  '/dashboard': typeof DashboardRoute
+  '/service-client': typeof ServiceClientRoute
+  '/prospects/$id': typeof ProspectsIdRoute
+  '/dossiers/': typeof DossiersIndexRoute
+  '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/service-client'
+    | '/prospects/$id'
+    | '/dossiers/'
+    | '/prospects/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/service-client'
+    | '/prospects/$id'
+    | '/dossiers'
+    | '/prospects'
+  id:
+    | '__root__'
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/service-client'
+    | '/prospects/$id'
+    | '/dossiers/'
+    | '/prospects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConfigurationRoute: typeof ConfigurationRoute
+  DashboardRoute: typeof DashboardRoute
+  ServiceClientRoute: typeof ServiceClientRoute
+  ProspectsIdRoute: typeof ProspectsIdRoute
+  DossiersIndexRoute: typeof DossiersIndexRoute
+  ProspectsIndexRoute: typeof ProspectsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/configuration': {
+      id: '/configuration'
+      path: '/configuration'
+      fullPath: '/configuration'
+      preLoaderRoute: typeof ConfigurationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/service-client': {
+      id: '/service-client'
+      path: '/service-client'
+      fullPath: '/service-client'
+      preLoaderRoute: typeof ServiceClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dossiers/': {
+      id: '/dossiers/'
+      path: '/dossiers'
+      fullPath: '/dossiers/'
+      preLoaderRoute: typeof DossiersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prospects/': {
+      id: '/prospects/'
+      path: '/prospects'
+      fullPath: '/prospects/'
+      preLoaderRoute: typeof ProspectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prospects/$id': {
+      id: '/prospects/$id'
+      path: '/prospects/$id'
+      fullPath: '/prospects/$id'
+      preLoaderRoute: typeof ProspectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConfigurationRoute: ConfigurationRoute,
+  DashboardRoute: DashboardRoute,
+  ServiceClientRoute: ServiceClientRoute,
+  ProspectsIdRoute: ProspectsIdRoute,
+  DossiersIndexRoute: DossiersIndexRoute,
+  ProspectsIndexRoute: ProspectsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
