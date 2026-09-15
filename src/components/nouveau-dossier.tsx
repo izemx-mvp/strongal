@@ -96,11 +96,23 @@ export function NouveauDossierDialog({
   };
 
   const submit = () => {
-    if (!client.trim()) return toast.error("Renseignez le nom du client");
-    if (!contact.trim()) return toast.error("Renseignez le téléphone ou l'email du contact");
-    if (!adresse.trim()) return toast.error("Renseignez l'adresse du chantier");
+    if (!client.trim()) {
+      toast.error("Renseignez le nom du client");
+      return;
+    }
+    if (!contact.trim()) {
+      toast.error("Renseignez le téléphone ou l'email du contact");
+      return;
+    }
+    if (!adresse.trim()) {
+      toast.error("Renseignez l'adresse du chantier");
+      return;
+    }
     const valides = reperes.filter((r) => r.designation.trim());
-    if (valides.length === 0) return toast.error("Ajoutez au moins un repère avec une désignation");
+    if (valides.length === 0) {
+      toast.error("Ajoutez au moins un repère avec une désignation");
+      return;
+    }
 
     const nums = dossiers
       .map((d) => Number(d.ref.split("-").at(-1)))
