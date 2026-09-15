@@ -233,6 +233,22 @@ export function computeDebitage(dossier: Dossier, config: Config): PlanDebitage[
   const byProfile = new Map<string, { longueur: number; label: string }[]>();
 
   for (const r of dossier.reperes) {
+    const produit = produitDuRepere(r, config);
+    if (produit) {
+      for (const c of produit.composants.filter((x) => x.type === "profil")) {
+        const pieces = byProfile.get(c.refId) ?? [];
+        const nb = Math.max(1, Math.round(c.coef));
+        const longueur = arrondi(
+          (valeurBase(c.base, r.largeur, r.hauteur) * c.coef) / nb,
+          config.arrondi,
+        );
+        for (let q = 0; q < r.quantite; q++)
+          for (let k = 0; k < nb; k++)
+            pieces.push({ longueur, label: `${r.id} • ${c.base}` });
+        byProfile.set(c.refId, pieces);
+      }
+      continue;
+    }
     const pieces = byProfile.get(r.profileId) ?? [];
     for (let q = 0; q < r.quantite; q++) {
       pieces.push({ longueur: arrondi(r.largeur, config.arrondi), label: `${r.id} • dormant L` });
