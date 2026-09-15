@@ -130,7 +130,20 @@ function DossiersPage() {
               {filtered.length > 1 ? "s" : ""} sur {dossiers.length}
             </p>
           </div>
-          <NouveauDossier open={open} setOpen={setOpen} setDossiers={setDossiers} />
+          <NouveauDossierDialog
+            trigger={
+              <Button className="shine">
+                <Plus className="mr-1 h-4 w-4" /> Nouveau dossier
+              </Button>
+            }
+            onCreated={() => {
+              setQ("");
+              setStatut("all");
+              setType("all");
+              setGamme("all");
+              setPage(1);
+            }}
+          />
         </div>
 
         <Card className="glass glass-hover mb-4 p-4">
