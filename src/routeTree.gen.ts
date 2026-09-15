@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ServiceClientRouteImport } from './routes/service-client'
 import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
 import { Route as ProspectsIndexRouteImport } from './routes/prospects.index'
+import { Route as ProspectsIdRouteImport } from './routes/prospects.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +32,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServiceClientRoute = ServiceClientRouteImport.update({
+  id: '/service-client',
+  path: '/service-client',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DossiersIndexRoute = DossiersIndexRouteImport.update({
   id: '/dossiers/',
   path: '/dossiers/',
@@ -40,11 +47,18 @@ const ProspectsIndexRoute = ProspectsIndexRouteImport.update({
   path: '/prospects/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProspectsIdRoute = ProspectsIdRouteImport.update({
+  id: '/prospects/$id',
+  path: '/prospects/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
+  '/service-client': typeof ServiceClientRoute
+  '/prospects/$id': typeof ProspectsIdRoute
   '/dossiers/': typeof DossiersIndexRoute
   '/prospects/': typeof ProspectsIndexRoute
 }
@@ -52,6 +66,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
+  '/service-client': typeof ServiceClientRoute
+  '/prospects/$id': typeof ProspectsIdRoute
   '/dossiers': typeof DossiersIndexRoute
   '/prospects': typeof ProspectsIndexRoute
 }
@@ -60,20 +76,37 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
+  '/service-client': typeof ServiceClientRoute
+  '/prospects/$id': typeof ProspectsIdRoute
   '/dossiers/': typeof DossiersIndexRoute
   '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/configuration' | '/dashboard' | '/dossiers/' | '/prospects/'
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/service-client'
+    | '/prospects/$id'
+    | '/dossiers/'
+    | '/prospects/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/configuration' | '/dashboard' | '/dossiers' | '/prospects'
+  to:
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/service-client'
+    | '/prospects/$id'
+    | '/dossiers'
+    | '/prospects'
   id:
     | '__root__'
     | '/'
     | '/configuration'
     | '/dashboard'
+    | '/service-client'
+    | '/prospects/$id'
     | '/dossiers/'
     | '/prospects/'
   fileRoutesById: FileRoutesById
@@ -82,6 +115,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfigurationRoute: typeof ConfigurationRoute
   DashboardRoute: typeof DashboardRoute
+  ServiceClientRoute: typeof ServiceClientRoute
+  ProspectsIdRoute: typeof ProspectsIdRoute
   DossiersIndexRoute: typeof DossiersIndexRoute
   ProspectsIndexRoute: typeof ProspectsIndexRoute
 }
@@ -109,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/service-client': {
+      id: '/service-client'
+      path: '/service-client'
+      fullPath: '/service-client'
+      preLoaderRoute: typeof ServiceClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dossiers/': {
       id: '/dossiers/'
       path: '/dossiers'
@@ -123,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProspectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prospects/$id': {
+      id: '/prospects/$id'
+      path: '/prospects/$id'
+      fullPath: '/prospects/$id'
+      preLoaderRoute: typeof ProspectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -130,6 +179,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfigurationRoute: ConfigurationRoute,
   DashboardRoute: DashboardRoute,
+  ServiceClientRoute: ServiceClientRoute,
+  ProspectsIdRoute: ProspectsIdRoute,
   DossiersIndexRoute: DossiersIndexRoute,
   ProspectsIndexRoute: ProspectsIndexRoute,
 }
