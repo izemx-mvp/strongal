@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ficheTechnique, fmt, fmtNum } from "@/lib/calc";
 import { CHECKLIST_ITEMS, type Dossier } from "@/lib/data";
 import { nowStr, useStore } from "@/lib/store";
 
@@ -478,5 +479,52 @@ export function NouveauDossierDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CompositionPreview({
+  produitId,
+  largeur,
+  hauteur,
+  quantite,
+}: {
+  produitId: string;
+  largeur: string;
+  hauteur: string;
+  quantite: string;
+}) {
+  const { config } = useStore();
+  const produit = config.produits.find((p) => p.id === produitId);
+  if (!produit) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        Repère sur mesure : la composition sera saisie manuellement au chiffrage.
+      </p>
+    );
+  }
+  const L = Number(largeur.replace(",", ".")) || 1;
+  const H = Number(hauteur.replace(",", ".")) || 1;
+  const Q = Number(quantite) || 1;
+  const fiche = ficheTechnique(produit, config, L, H, Q);
+  const total =
+    fiche.profils.reduce((s, x) => s + x.cout, 0) + fiche.accessoires.reduce((s, x) => s + x.total, 0);
+
+  return (
+    <div className="rounded-lg bg-accent-soft/60 p-2.5 text-xs">
+      <p className="mb-1 font-semibold">Ce que contient ce produit pour {L} × {H} m × {Q}</p>
+      <ul className="space-y-0.5 text-muted-foreground">
+        {fiche.profils.map((p, i) => (
+          <li key={`p${i}`}>
+            {p.ref} — {p.pieces} pièce(s) de {fmtNum(p.longueurPiece)} m · {fmtNum(p.ml)} ml
+          </li>
+        ))}
+        {fiche.accessoires.map((a, i) => (
+          <li key={`a${i}`}>
+            {a.nom} — {fmtNum(a.qte, 1)} {a.unite}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1 font-semibold">Coût matière estimé : {fmt(total)}</p>
+    </div>
   );
 }
