@@ -181,6 +181,39 @@ export function AppShell({ children }: { children: ReactNode }) {
               />
             </div>
             <div className="flex-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Basculer le mode nuit"
+                  onClick={() => {
+                    toggleTheme();
+                    toast.success(theme === "dark" ? "Mode jour activé" : "Mode nuit activé");
+                  }}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={theme}
+                      initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex"
+                    >
+                      {theme === "dark" ? (
+                        <Sun className="h-5 w-5" />
+                      ) : (
+                        <Moon className="h-5 w-5" />
+                      )}
+                    </motion.span>
+                  </AnimatePresence>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {theme === "dark" ? "Passer en mode jour" : "Passer en mode nuit"}
+              </TooltipContent>
+            </Tooltip>
             <Popover onOpenChange={(o) => o && markNotificationsRead()}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
