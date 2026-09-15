@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   defaultConfig,
   initialDocuments,
@@ -35,6 +35,8 @@ type Store = {
   setAgentActif: React.Dispatch<React.SetStateAction<boolean>>;
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
   notifications: Notification[];
   markNotificationsRead: () => void;
 };
@@ -52,6 +54,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [infos, setInfos] = useState<InfosPratiques>(initialInfos);
   const [agentActif, setAgentActif] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("strongal-theme");
+    if (saved === "dark" || saved === "light") setTheme(saved);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem("strongal-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: "n1",
@@ -127,11 +142,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAgentActif,
       sidebarOpen,
       setSidebarOpen,
+      theme,
+      toggleTheme,
       notifications,
       markNotificationsRead,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config, dossiers, prospects, faq, documents, infos, agentActif, sidebarOpen, notifications],
+    [config, dossiers, prospects, faq, documents, infos, agentActif, sidebarOpen, theme, notifications],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

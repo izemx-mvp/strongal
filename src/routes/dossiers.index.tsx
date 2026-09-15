@@ -1,22 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowUpDown, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ArrowUpDown, Plus, RotateCcw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageTransition } from "@/components/motion-bits";
 import { StatutBadge } from "@/components/badges";
+import { NouveauDossierDialog } from "@/components/nouveau-dossier";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { budgetEstime, fmt } from "@/lib/calc";
-import type { Dossier, StatutDossier } from "@/lib/data";
-import { CHECKLIST_ITEMS } from "@/lib/data";
-import { nowStr, useStore } from "@/lib/store";
+import type { StatutDossier } from "@/lib/data";
+import { useStore } from "@/lib/store";
 
 const STATUTS: StatutDossier[] = [
   "Nouveau",
@@ -57,7 +55,7 @@ export const Route = createFileRoute("/dossiers/")({
 type SortKey = "ref" | "client" | "budget" | "date" | "statut";
 
 function DossiersPage() {
-  const { dossiers, setDossiers, config } = useStore();
+  const { dossiers, config } = useStore();
   const navigate = useNavigate();
   const search = Route.useSearch();
 
@@ -68,7 +66,6 @@ function DossiersPage() {
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "date", dir: -1 });
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
-  const [open, setOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -130,7 +127,20 @@ function DossiersPage() {
               {filtered.length > 1 ? "s" : ""} sur {dossiers.length}
             </p>
           </div>
-          <NouveauDossier open={open} setOpen={setOpen} setDossiers={setDossiers} />
+          <NouveauDossierDialog
+            trigger={
+              <Button className="shine">
+                <Plus className="mr-1 h-4 w-4" /> Nouveau dossier
+              </Button>
+            }
+            onCreated={() => {
+              setQ("");
+              setStatut("all");
+              setType("all");
+              setGamme("all");
+              setPage(1);
+            }}
+          />
         </div>
 
         <Card className="glass glass-hover mb-4 p-4">
@@ -309,186 +319,5 @@ function DossiersPage() {
         </div>
       </PageTransition>
     </AppShell>
-  );
-}
-
-function NouveauDossier({
-  open,
-  setOpen,
-  setDossiers,
-}: {
-  open: boolean;
-  setOpen: (v: boolean) => void;
-  setDossiers: React.Dispatch<React.SetStateAction<Dossier[]>>;
-}) {
-  const { config } = useStore();
-  const [client, setClient] = useState("");
-  const [typeProjet, setTypeProjet] = useState<Dossier["typeProjet"]>("Résidentiel");
-  const [gamme, setGamme] = useState<Dossier["gamme"]>("Standard");
-  const [reperes, setReperes] = useState([
-    { designation: "", largeur: "2.4", hauteur: "2.2", quantite: "1" },
-  ]);
-
-  const submit = () => {
-    if (!client.trim()) {
-      toast.error("Renseignez le nom du client");
-      return;
-    }
-    setDossiers((prev) => {
-      const num = String(prev.length + 1).padStart(3, "0");
-      const ref = `STR-2026-${num}`;
-      const d: Dossier = {
-        ref,
-        client,
-        contact: "+212 600000000",
-        typeProjet,
-        gamme,
-        adresse: "À compléter",
-        technicien: "Non assigné",
-        dateCollecte: "—",
-        date: nowStr().slice(0, 10),
-        statut: "Nouveau",
-        etape: 0,
-        reperes: reperes
-          .filter((r) => r.designation.trim())
-          .map((r, j) => ({
-            id: `${ref}-R${j + 1}`,
-            designation: r.designation,
-            largeur: Number(r.largeur) || 1,
-            hauteur: Number(r.hauteur) || 1,
-            quantite: Number(r.quantite) || 1,
-            ouvrageId: config.ouvrages[0].id,
-            profileId: config.profiles[0].id,
-            vitrageId: gamme === "Haut de gamme" ? "v3" : "v2",
-            contraintes: [],
-          })),
-        notes: "",
-        checklist: Object.fromEntries(CHECKLIST_ITEMS.map((c) => [c, false])),
-        devis: [],
-        historique: [{ date: nowStr(), auteur: "M. Aboulssaad", label: "Dossier créé manuellement" }],
-        resume: ["Dossier créé manuellement, collecte terrain à planifier."],
-        isNew: true,
-      } as Dossier & { isNew?: boolean };
-      return [d, ...prev];
-    });
-    toast.success(`Dossier créé pour ${client}`);
-    setOpen(false);
-    setClient("");
-    setReperes([{ designation: "", largeur: "2.4", hauteur: "2.2", quantite: "1" }]);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="shine">
-          <Plus className="mr-1 h-4 w-4" /> Nouveau dossier
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Nouveau dossier</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Client</Label>
-            <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Nom du client" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Type de projet</Label>
-              <Select value={typeProjet} onValueChange={(v) => setTypeProjet(v as Dossier["typeProjet"])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Gamme</Label>
-              <Select value={gamme} onValueChange={(v) => setGamme(v as Dossier["gamme"])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GAMMES.map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {g}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Repères</Label>
-            {reperes.map((r, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2">
-                <Input
-                  className="col-span-5"
-                  placeholder="Désignation"
-                  value={r.designation}
-                  onChange={(e) =>
-                    setReperes((p) => p.map((x, j) => (j === i ? { ...x, designation: e.target.value } : x)))
-                  }
-                />
-                <Input
-                  className="col-span-2"
-                  placeholder="Larg. m"
-                  value={r.largeur}
-                  onChange={(e) =>
-                    setReperes((p) => p.map((x, j) => (j === i ? { ...x, largeur: e.target.value } : x)))
-                  }
-                />
-                <Input
-                  className="col-span-2"
-                  placeholder="Haut. m"
-                  value={r.hauteur}
-                  onChange={(e) =>
-                    setReperes((p) => p.map((x, j) => (j === i ? { ...x, hauteur: e.target.value } : x)))
-                  }
-                />
-                <Input
-                  className="col-span-2"
-                  placeholder="Qté"
-                  value={r.quantite}
-                  onChange={(e) =>
-                    setReperes((p) => p.map((x, j) => (j === i ? { ...x, quantite: e.target.value } : x)))
-                  }
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="col-span-1"
-                  onClick={() => setReperes((p) => p.filter((_, j) => j !== i))}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setReperes((p) => [...p, { designation: "", largeur: "2.4", hauteur: "2.2", quantite: "1" }])
-              }
-            >
-              <Plus className="mr-1 h-4 w-4" /> Ajouter un repère
-            </Button>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={submit} className="shine">
-            Créer le dossier
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

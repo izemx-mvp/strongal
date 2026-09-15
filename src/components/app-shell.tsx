@@ -8,8 +8,10 @@ import {
   LayoutDashboard,
   LogOut,
   MessagesSquare,
+  Moon,
   Search,
   Settings2,
+  Sun,
   User,
   UserSearch,
 } from "lucide-react";
@@ -40,8 +42,16 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { sidebarOpen, setSidebarOpen, notifications, markNotificationsRead, dossiers, prospects } =
-    useStore();
+  const {
+    sidebarOpen,
+    setSidebarOpen,
+    notifications,
+    markNotificationsRead,
+    dossiers,
+    prospects,
+    theme,
+    toggleTheme,
+  } = useStore();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [quick, setQuick] = useState("");
@@ -82,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <img
                 src={LOGO_URL}
                 alt="Strongal"
-                className={sidebarOpen ? "h-12 object-contain" : "h-7 w-7 object-contain"}
+                className={`rounded-lg object-contain dark:bg-white dark:p-1 ${sidebarOpen ? "h-12" : "h-8 w-8"}`}
               />
             </div>
           </div>
@@ -171,6 +181,39 @@ export function AppShell({ children }: { children: ReactNode }) {
               />
             </div>
             <div className="flex-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Basculer le mode nuit"
+                  onClick={() => {
+                    toggleTheme();
+                    toast.success(theme === "dark" ? "Mode jour activé" : "Mode nuit activé");
+                  }}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={theme}
+                      initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex"
+                    >
+                      {theme === "dark" ? (
+                        <Sun className="h-5 w-5" />
+                      ) : (
+                        <Moon className="h-5 w-5" />
+                      )}
+                    </motion.span>
+                  </AnimatePresence>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {theme === "dark" ? "Passer en mode jour" : "Passer en mode nuit"}
+              </TooltipContent>
+            </Tooltip>
             <Popover onOpenChange={(o) => o && markNotificationsRead()}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">

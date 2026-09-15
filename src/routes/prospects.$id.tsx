@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bot, Save } from "lucide-react";
+import { ArrowLeft, Bot, FolderPlus, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { ProspectBadge } from "@/components/badges";
 import { PageTransition } from "@/components/motion-bits";
+import { NouveauDossierDialog } from "@/components/nouveau-dossier";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -94,6 +95,23 @@ function ProspectDetail() {
               Corrigé manuellement
             </span>
           )}
+          <div className="flex-1" />
+          <NouveauDossierDialog
+            prefill={{
+              client: prospect.nom,
+              contact: prospect.contact,
+              typeProjet: typeDossierDepuisProspect(prospect.typeProjet),
+              gamme: gammeDepuisProspect(prospect.typeProjet, prospect.budget),
+              adresse: prospect.zone,
+              origine: `le prospect ${prospect.id}`,
+            }}
+            trigger={
+              <Button className="shine">
+                <FolderPlus className="mr-1 h-4 w-4" /> Créer un dossier
+              </Button>
+            }
+            onCreated={(ref) => navigate({ to: "/dossiers/$ref", params: { ref } })}
+          />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
@@ -205,4 +223,18 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="font-medium">{value}</p>
     </div>
   );
+}
+
+function typeDossierDepuisProspect(t: string): "Résidentiel" | "Villa" | "Commercial" | "Promotion" {
+  const v = t.toLowerCase();
+  if (v.includes("villa")) return "Villa";
+  if (v.includes("commerc") || v.includes("bureau") || v.includes("magasin")) return "Commercial";
+  if (v.includes("promo") || v.includes("immeuble") || v.includes("résidence")) return "Promotion";
+  return "Résidentiel";
+}
+
+function gammeDepuisProspect(t: string, budget: number): "Standard" | "Haut de gamme" {
+  return t.toLowerCase().includes("haut de gamme") || t.toLowerCase().includes("villa") || budget >= 200000
+    ? "Haut de gamme"
+    : "Standard";
 }
