@@ -345,6 +345,9 @@ function DossierDetail() {
                     <span className="text-xs text-muted-foreground">
                       {l.repere.largeur} × {l.repere.hauteur} m · ×{l.repere.quantite} · {l.ouvrageNom}
                     </span>
+                    <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold">
+                      {l.produitNom}
+                    </span>
                     {l.repere.modifieManuellement && (
                       <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold">
                         Modifié manuellement
