@@ -54,6 +54,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [infos, setInfos] = useState<InfosPratiques>(initialInfos);
   const [agentActif, setAgentActif] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("strongal-theme");
+    if (saved === "dark" || saved === "light") setTheme(saved);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem("strongal-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: "n1",
