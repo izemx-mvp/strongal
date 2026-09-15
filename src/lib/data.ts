@@ -112,6 +112,7 @@ export type Dossier = {
   devis: DevisVersion[];
   historique: HistoEntry[];
   resume: string[];
+  isNew?: boolean;
 };
 
 export type StatutProspect =
