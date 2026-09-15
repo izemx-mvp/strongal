@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageTransition } from "@/components/motion-bits";
+import { ProduitsTab } from "@/components/produits-tab";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -68,8 +69,9 @@ function ConfigurationPage() {
           )}
         </div>
 
-        <Tabs defaultValue="profiles">
+        <Tabs defaultValue="produits">
           <TabsList className="flex-wrap">
+            <TabsTrigger value="produits">Produits finis</TabsTrigger>
             <TabsTrigger value="profiles">Profilés</TabsTrigger>
             <TabsTrigger value="vitrages">Vitrages</TabsTrigger>
             <TabsTrigger value="accessoires">Accessoires</TabsTrigger>
@@ -78,6 +80,9 @@ function ConfigurationPage() {
             <TabsTrigger value="bareme">Barème & marges</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="produits" className="mt-4">
+            <ProduitsTab />
+          </TabsContent>
           <TabsContent value="profiles" className="mt-4">
             <ProfilesTab config={config} set={set} save={save} />
           </TabsContent>

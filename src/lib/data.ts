@@ -33,6 +33,38 @@ export type Ouvrage = {
   delaiFabrication: number;
 };
 
+/** Base de calcul d'un composant : dépend des dimensions du repère. */
+export type BaseComposant = "perimetre" | "largeur" | "hauteur" | "surface" | "unite";
+
+export const BASES_COMPOSANT: { value: BaseComposant; label: string; unite: string }[] = [
+  { value: "perimetre", label: "Périmètre (2×(L+H))", unite: "ml" },
+  { value: "largeur", label: "Largeur", unite: "ml" },
+  { value: "hauteur", label: "Hauteur", unite: "ml" },
+  { value: "surface", label: "Surface (L×H)", unite: "m²" },
+  { value: "unite", label: "À l'unité", unite: "u" },
+];
+
+export type ComposantProduit = {
+  id: string;
+  type: "profil" | "accessoire";
+  refId: string;
+  base: BaseComposant;
+  coef: number;
+};
+
+/** Produit fini du catalogue + sa fiche technique (nomenclature paramétrée). */
+export type Produit = {
+  id: string;
+  nom: string;
+  categorie: string;
+  description: string;
+  ouvrageId: string;
+  profileId: string;
+  vitrageId: string;
+  heuresM2: number;
+  composants: ComposantProduit[];
+};
+
 export type Qualification = {
   budgetMin: number;
   zones: string[];
@@ -47,6 +79,7 @@ export type Config = {
   vitrages: Vitrage[];
   accessoires: Accessoire[];
   ouvrages: Ouvrage[];
+  produits: Produit[];
   longueurBarre: number;
   longueurBarreAlt: number;
   seuilLargeur: number;
@@ -70,6 +103,7 @@ export type Repere = {
   ouvrageId: string;
   profileId: string;
   vitrageId: string;
+  produitId?: string;
   contraintes: string[];
   modifieManuellement?: boolean;
   raisonModif?: string;
@@ -294,6 +328,114 @@ export const defaultConfig: Config = {
     { id: "o6", nom: "Brise-soleil", coefficient: 1.25, delaiFabrication: 25 },
     { id: "o7", nom: "Garde-corps", coefficient: 1.1, delaiFabrication: 18 },
     { id: "o8", nom: "Habillage aluminium", coefficient: 0.9, delaiFabrication: 15 },
+  ],
+  produits: [
+    {
+      id: "pr1",
+      nom: "Baie coulissante 2 vantaux",
+      categorie: "Coulissant",
+      description:
+        "Baie coulissante à rupture de pont thermique, 2 vantaux sur rail bas, vitrage isolant.",
+      ouvrageId: "o1",
+      profileId: "p1",
+      vitrageId: "v2",
+      heuresM2: 1.6,
+      composants: [
+        { id: "c1", type: "profil", refId: "p1", base: "perimetre", coef: 1 },
+        { id: "c2", type: "profil", refId: "p1", base: "hauteur", coef: 4 },
+        { id: "c3", type: "profil", refId: "p1", base: "largeur", coef: 2 },
+        { id: "c4", type: "accessoire", refId: "a1", base: "unite", coef: 4 },
+        { id: "c5", type: "accessoire", refId: "a2", base: "unite", coef: 2 },
+        { id: "c6", type: "accessoire", refId: "a3", base: "perimetre", coef: 1.2 },
+        { id: "c7", type: "accessoire", refId: "a7", base: "unite", coef: 4 },
+      ],
+    },
+    {
+      id: "pr2",
+      nom: "Baie coulissante 3 vantaux",
+      categorie: "Coulissant",
+      description: "Grande baie 3 vantaux, seuil PMR possible, vitrage faible émissivité.",
+      ouvrageId: "o1",
+      profileId: "p1",
+      vitrageId: "v3",
+      heuresM2: 1.9,
+      composants: [
+        { id: "c1", type: "profil", refId: "p1", base: "perimetre", coef: 1 },
+        { id: "c2", type: "profil", refId: "p1", base: "hauteur", coef: 6 },
+        { id: "c3", type: "profil", refId: "p1", base: "largeur", coef: 3 },
+        { id: "c4", type: "accessoire", refId: "a1", base: "unite", coef: 6 },
+        { id: "c5", type: "accessoire", refId: "a2", base: "unite", coef: 3 },
+        { id: "c6", type: "accessoire", refId: "a3", base: "perimetre", coef: 1.4 },
+        { id: "c7", type: "accessoire", refId: "a5", base: "unite", coef: 3 },
+      ],
+    },
+    {
+      id: "pr3",
+      nom: "Fenêtre oscillo-battante 2 vantaux",
+      categorie: "Ouvrant",
+      description: "Fenêtre à frappe 2 vantaux, un ouvrant oscillo-battant, serrure multipoints.",
+      ouvrageId: "o1",
+      profileId: "p2",
+      vitrageId: "v2",
+      heuresM2: 1.4,
+      composants: [
+        { id: "c1", type: "profil", refId: "p2", base: "perimetre", coef: 1 },
+        { id: "c2", type: "profil", refId: "p2", base: "perimetre", coef: 0.95 },
+        { id: "c3", type: "profil", refId: "p2", base: "hauteur", coef: 1 },
+        { id: "c4", type: "accessoire", refId: "a4", base: "unite", coef: 1 },
+        { id: "c5", type: "accessoire", refId: "a2", base: "unite", coef: 2 },
+        { id: "c6", type: "accessoire", refId: "a3", base: "perimetre", coef: 2 },
+        { id: "c7", type: "accessoire", refId: "a7", base: "unite", coef: 8 },
+      ],
+    },
+    {
+      id: "pr4",
+      nom: "Mur rideau trame verticale",
+      categorie: "Façade",
+      description: "Façade rideau à trame verticale, remplissage vitré, fixation sur nez de dalle.",
+      ouvrageId: "o2",
+      profileId: "p3",
+      vitrageId: "v3",
+      heuresM2: 2.4,
+      composants: [
+        { id: "c1", type: "profil", refId: "p3", base: "hauteur", coef: 3 },
+        { id: "c2", type: "profil", refId: "p3", base: "largeur", coef: 4 },
+        { id: "c3", type: "accessoire", refId: "a3", base: "surface", coef: 2.5 },
+        { id: "c4", type: "accessoire", refId: "a7", base: "surface", coef: 4 },
+      ],
+    },
+    {
+      id: "pr5",
+      nom: "Pergola bioclimatique à lames orientables",
+      categorie: "Extérieur",
+      description: "Structure alu laqué, lames orientables motorisées, évacuation des eaux intégrée.",
+      ouvrageId: "o3",
+      profileId: "p4",
+      vitrageId: "v1",
+      heuresM2: 2,
+      composants: [
+        { id: "c1", type: "profil", refId: "p4", base: "perimetre", coef: 1.2 },
+        { id: "c2", type: "profil", refId: "p4", base: "largeur", coef: 6 },
+        { id: "c3", type: "accessoire", refId: "a6", base: "unite", coef: 1 },
+        { id: "c4", type: "accessoire", refId: "a7", base: "unite", coef: 8 },
+      ],
+    },
+    {
+      id: "pr6",
+      nom: "Garde-corps vitré",
+      categorie: "Extérieur",
+      description: "Garde-corps tout verre sur profil de serrage alu, verre feuilleté de sécurité.",
+      ouvrageId: "o7",
+      profileId: "p5",
+      vitrageId: "v4",
+      heuresM2: 1.1,
+      composants: [
+        { id: "c1", type: "profil", refId: "p5", base: "largeur", coef: 2 },
+        { id: "c2", type: "profil", refId: "p5", base: "hauteur", coef: 2 },
+        { id: "c3", type: "accessoire", refId: "a7", base: "largeur", coef: 2 },
+        { id: "c4", type: "accessoire", refId: "a3", base: "largeur", coef: 2 },
+      ],
+    },
   ],
   longueurBarre: 6.4,
   longueurBarreAlt: 6,
@@ -563,6 +705,18 @@ export const initialDossiers: Dossier[] = seeds.map((s, i) => {
       ouvrageId,
       profileId,
       vitrageId: gamme === "Haut de gamme" ? "v3" : "v2",
+      produitId:
+        ouvrageId === "o1"
+          ? gamme === "Haut de gamme"
+            ? "pr2"
+            : "pr1"
+          : ouvrageId === "o2"
+            ? "pr4"
+            : ouvrageId === "o3"
+              ? "pr5"
+              : ouvrageId === "o7"
+                ? "pr6"
+                : "pr3",
       contraintes: [contraintesPool[(i + j) % contraintesPool.length]],
     };
   });

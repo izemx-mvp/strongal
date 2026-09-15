@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ficheTechnique, fmt, fmtNum } from "@/lib/calc";
 import { CHECKLIST_ITEMS, type Dossier } from "@/lib/data";
 import { nowStr, useStore } from "@/lib/store";
 
@@ -39,6 +40,7 @@ export type DossierPrefill = {
 
 type RepereDraft = {
   designation: string;
+  produitId: string;
   ouvrageId: string;
   profileId: string;
   vitrageId: string;
@@ -60,11 +62,15 @@ export function NouveauDossierDialog({
   const { config, setDossiers, dossiers } = useStore();
   const [open, setOpen] = useState(false);
 
+  const premierProduit = config.produits[0];
+
   const emptyRepere = (): RepereDraft => ({
     designation: "",
-    ouvrageId: config.ouvrages[0]?.id ?? "",
-    profileId: config.profiles[0]?.id ?? "",
-    vitrageId: config.vitrages[1]?.id ?? config.vitrages[0]?.id ?? "",
+    produitId: premierProduit?.id ?? "",
+    ouvrageId: premierProduit?.ouvrageId ?? config.ouvrages[0]?.id ?? "",
+    profileId: premierProduit?.profileId ?? config.profiles[0]?.id ?? "",
+    vitrageId:
+      premierProduit?.vitrageId ?? config.vitrages[1]?.id ?? config.vitrages[0]?.id ?? "",
     largeur: "2.40",
     hauteur: "2.20",
     quantite: "1",
@@ -140,6 +146,7 @@ export function NouveauDossierDialog({
         ouvrageId: r.ouvrageId,
         profileId: r.profileId,
         vitrageId: r.vitrageId,
+        produitId: r.produitId || undefined,
         contraintes: r.contraintes
           .split(",")
           .map((c) => c.trim())
@@ -293,6 +300,50 @@ export function NouveauDossierDialog({
                   </Button>
                 </div>
 
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Produit fini souhaité par le client</Label>
+                  <Select
+                    value={r.produitId || "custom"}
+                    onValueChange={(v) =>
+                      setReperes((p) =>
+                        p.map((x, j) => {
+                          if (j !== i) return x;
+                          if (v === "custom") return { ...x, produitId: "" };
+                          const prod = config.produits.find((o) => o.id === v);
+                          return prod
+                            ? {
+                                ...x,
+                                produitId: prod.id,
+                                ouvrageId: prod.ouvrageId,
+                                profileId: prod.profileId,
+                                vitrageId: prod.vitrageId,
+                                designation: x.designation.trim() ? x.designation : prod.nom,
+                              }
+                            : { ...x, produitId: v };
+                        }),
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {config.produits.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {o.nom} — {o.categorie}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">Sur mesure (sans fiche technique)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <CompositionPreview
+                    produitId={r.produitId}
+                    largeur={r.largeur}
+                    hauteur={r.hauteur}
+                    quantite={r.quantite}
+                  />
+                </div>
+
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Type d'ouvrage</Label>
@@ -428,5 +479,52 @@ export function NouveauDossierDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CompositionPreview({
+  produitId,
+  largeur,
+  hauteur,
+  quantite,
+}: {
+  produitId: string;
+  largeur: string;
+  hauteur: string;
+  quantite: string;
+}) {
+  const { config } = useStore();
+  const produit = config.produits.find((p) => p.id === produitId);
+  if (!produit) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        Repère sur mesure : la composition sera saisie manuellement au chiffrage.
+      </p>
+    );
+  }
+  const L = Number(largeur.replace(",", ".")) || 1;
+  const H = Number(hauteur.replace(",", ".")) || 1;
+  const Q = Number(quantite) || 1;
+  const fiche = ficheTechnique(produit, config, L, H, Q);
+  const total =
+    fiche.profils.reduce((s, x) => s + x.cout, 0) + fiche.accessoires.reduce((s, x) => s + x.total, 0);
+
+  return (
+    <div className="rounded-lg bg-accent-soft/60 p-2.5 text-xs">
+      <p className="mb-1 font-semibold">Ce que contient ce produit pour {L} × {H} m × {Q}</p>
+      <ul className="space-y-0.5 text-muted-foreground">
+        {fiche.profils.map((p, i) => (
+          <li key={`p${i}`}>
+            {p.ref} — {p.pieces} pièce(s) de {fmtNum(p.longueurPiece)} m · {fmtNum(p.ml)} ml
+          </li>
+        ))}
+        {fiche.accessoires.map((a, i) => (
+          <li key={`a${i}`}>
+            {a.nom} — {fmtNum(a.qte, 1)} {a.unite}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1 font-semibold">Coût matière estimé : {fmt(total)}</p>
+    </div>
   );
 }

@@ -345,6 +345,9 @@ function DossierDetail() {
                     <span className="text-xs text-muted-foreground">
                       {l.repere.largeur} × {l.repere.hauteur} m · ×{l.repere.quantite} · {l.ouvrageNom}
                     </span>
+                    <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold">
+                      {l.produitNom}
+                    </span>
                     {l.repere.modifieManuellement && (
                       <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold">
                         Modifié manuellement
@@ -389,13 +392,17 @@ function DossierDetail() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell className="font-medium">Profilé aluminium</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {l.profileRef} — {l.profileSerie} · {fmtNum(l.ml)} ml
-                        </TableCell>
-                        <TableCell className="text-right">{fmt(l.coutAlu)}</TableCell>
-                      </TableRow>
+                      {l.profils.map((p, pi) => (
+                        <TableRow key={`${p.profileId}-${pi}`}>
+                          <TableCell className="font-medium">
+                            {pi === 0 ? "Profilé aluminium" : ""}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {p.ref} — {p.serie} · {p.detail} · {fmtNum(p.ml)} ml
+                          </TableCell>
+                          <TableCell className="text-right">{fmt(p.cout)}</TableCell>
+                        </TableRow>
+                      ))}
                       <TableRow>
                         <TableCell className="font-medium">Vitrage</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
