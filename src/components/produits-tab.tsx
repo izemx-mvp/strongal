@@ -427,7 +427,7 @@ function ProduitCard({
               {fiche.profils.map((p, i) => (
                 <li key={`p${i}`} className="flex justify-between gap-3">
                   <span>
-                    {p.ref} — {p.serie} · {p.pieces} barre(s) de {fmtNum(p.longueurPiece)} m ·{" "}
+                    {p.ref} — {p.serie} · {p.pieces} pièce(s) de {fmtNum(p.longueurPiece)} m ·{" "}
                     {fmtNum(p.ml)} ml
                   </span>
                   <span className="text-muted-foreground">{fmt(p.cout)}</span>
