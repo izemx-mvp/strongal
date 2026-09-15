@@ -92,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <img
                 src={LOGO_URL}
                 alt="Strongal"
-                className={`object-contain dark:brightness-0 dark:invert ${sidebarOpen ? "h-12" : "h-7 w-7"}`}
+                className={`rounded-lg object-contain dark:bg-white dark:p-1 ${sidebarOpen ? "h-12" : "h-8 w-8"}`}
               />
             </div>
           </div>
