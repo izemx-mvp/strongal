@@ -706,9 +706,17 @@ export const initialDossiers: Dossier[] = seeds.map((s, i) => {
       profileId,
       vitrageId: gamme === "Haut de gamme" ? "v3" : "v2",
       produitId:
-        { o1: gamme === "Haut de gamme" ? "pr2" : "pr1", o2: "pr4", o3: "pr5", o7: "pr6" }[
-          ouvrageId
-        ] ?? "pr3",
+        ouvrageId === "o1"
+          ? gamme === "Haut de gamme"
+            ? "pr2"
+            : "pr1"
+          : ouvrageId === "o2"
+            ? "pr4"
+            : ouvrageId === "o3"
+              ? "pr5"
+              : ouvrageId === "o7"
+                ? "pr6"
+                : "pr3",
       contraintes: [contraintesPool[(i + j) % contraintesPool.length]],
     };
   });
