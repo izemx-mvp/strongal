@@ -39,6 +39,7 @@ export type DossierPrefill = {
 
 type RepereDraft = {
   designation: string;
+  produitId: string;
   ouvrageId: string;
   profileId: string;
   vitrageId: string;
@@ -60,11 +61,15 @@ export function NouveauDossierDialog({
   const { config, setDossiers, dossiers } = useStore();
   const [open, setOpen] = useState(false);
 
+  const premierProduit = config.produits[0];
+
   const emptyRepere = (): RepereDraft => ({
     designation: "",
-    ouvrageId: config.ouvrages[0]?.id ?? "",
-    profileId: config.profiles[0]?.id ?? "",
-    vitrageId: config.vitrages[1]?.id ?? config.vitrages[0]?.id ?? "",
+    produitId: premierProduit?.id ?? "",
+    ouvrageId: premierProduit?.ouvrageId ?? config.ouvrages[0]?.id ?? "",
+    profileId: premierProduit?.profileId ?? config.profiles[0]?.id ?? "",
+    vitrageId:
+      premierProduit?.vitrageId ?? config.vitrages[1]?.id ?? config.vitrages[0]?.id ?? "",
     largeur: "2.40",
     hauteur: "2.20",
     quantite: "1",
