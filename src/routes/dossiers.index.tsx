@@ -1,22 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowUpDown, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ArrowUpDown, Plus, RotateCcw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageTransition } from "@/components/motion-bits";
 import { StatutBadge } from "@/components/badges";
+import { NouveauDossierDialog } from "@/components/nouveau-dossier";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { budgetEstime, fmt } from "@/lib/calc";
-import type { Dossier, StatutDossier } from "@/lib/data";
-import { CHECKLIST_ITEMS } from "@/lib/data";
-import { nowStr, useStore } from "@/lib/store";
+import type { StatutDossier } from "@/lib/data";
+import { useStore } from "@/lib/store";
 
 const STATUTS: StatutDossier[] = [
   "Nouveau",
@@ -57,7 +55,7 @@ export const Route = createFileRoute("/dossiers/")({
 type SortKey = "ref" | "client" | "budget" | "date" | "statut";
 
 function DossiersPage() {
-  const { dossiers, setDossiers, config } = useStore();
+  const { dossiers, config } = useStore();
   const navigate = useNavigate();
   const search = Route.useSearch();
 
@@ -68,7 +66,6 @@ function DossiersPage() {
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "date", dir: -1 });
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
-  const [open, setOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
