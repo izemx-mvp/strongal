@@ -145,6 +145,7 @@ export function NouveauDossierDialog({
         ouvrageId: r.ouvrageId,
         profileId: r.profileId,
         vitrageId: r.vitrageId,
+        produitId: r.produitId || undefined,
         contraintes: r.contraintes
           .split(",")
           .map((c) => c.trim())
