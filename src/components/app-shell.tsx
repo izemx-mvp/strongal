@@ -8,8 +8,10 @@ import {
   LayoutDashboard,
   LogOut,
   MessagesSquare,
+  Moon,
   Search,
   Settings2,
+  Sun,
   User,
   UserSearch,
 } from "lucide-react";
