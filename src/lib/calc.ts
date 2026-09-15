@@ -65,33 +65,130 @@ function arrondi(v: number, mode: Config["arrondi"]) {
   return Math.ceil(v * f) / f;
 }
 
+/** Valeur de base d'un composant pour une unité de repère (hors quantité). */
+export function valeurBase(base: BaseComposant, largeur: number, hauteur: number) {
+  switch (base) {
+    case "perimetre":
+      return 2 * (largeur + hauteur);
+    case "largeur":
+      return largeur;
+    case "hauteur":
+      return hauteur;
+    case "surface":
+      return largeur * hauteur;
+    default:
+      return 1;
+  }
+}
+
+export const produitDuRepere = (r: Repere, config: Config): Produit | undefined =>
+  config.produits.find((p) => p.id === r.produitId);
+
+/** Nomenclature détaillée d'un produit fini appliquée à des dimensions données. */
+export function ficheTechnique(
+  produit: Produit,
+  config: Config,
+  largeur: number,
+  hauteur: number,
+  quantite = 1,
+) {
+  const profils = produit.composants
+    .filter((c) => c.type === "profil")
+    .map((c) => {
+      const p = config.profiles.find((x) => x.id === c.refId) ?? config.profiles[0];
+      const unitaire = valeurBase(c.base, largeur, hauteur) * c.coef;
+      const ml = arrondi(unitaire * quantite * p.ratio, config.arrondi);
+      return {
+        profileId: p.id,
+        ref: p.ref,
+        serie: p.serie,
+        detail: `${c.coef} × ${c.base === "unite" ? "ml" : c.base}`,
+        longueurPiece: unitaire / Math.max(1, Math.round(c.coef)),
+        pieces: Math.max(1, Math.round(c.coef)) * quantite,
+        ml,
+        cout: (ml / config.longueurBarre) * p.prixBarre,
+      };
+    });
+  const accessoires = produit.composants
+    .filter((c) => c.type === "accessoire")
+    .map((c) => {
+      const a = config.accessoires.find((x) => x.id === c.refId) ?? config.accessoires[0];
+      const brut = valeurBase(c.base, largeur, hauteur) * c.coef * quantite;
+      const qte = a.unite === "u" ? Math.ceil(brut) : Math.round(brut * 10) / 10;
+      return {
+        nom: a.nom,
+        qte,
+        unite: a.unite,
+        coutUnitaire: a.coutUnitaire,
+        total: qte * a.coutUnitaire,
+      };
+    });
+  return { profils, accessoires };
+}
+
 export function computeLignes(dossier: Dossier, config: Config): LigneRepere[] {
   return dossier.reperes.map((r) => {
-    const profile = config.profiles.find((p) => p.id === r.profileId) ?? config.profiles[0];
-    const vitrage = config.vitrages.find((v) => v.id === r.vitrageId) ?? config.vitrages[0];
-    const ouvrage = config.ouvrages.find((o) => o.id === r.ouvrageId) ?? config.ouvrages[0];
+    const produit = produitDuRepere(r, config);
+    const profile =
+      config.profiles.find((p) => p.id === (produit?.profileId ?? r.profileId)) ?? config.profiles[0];
+    const vitrage =
+      config.vitrages.find((v) => v.id === (produit?.vitrageId ?? r.vitrageId)) ?? config.vitrages[0];
+    const ouvrage =
+      config.ouvrages.find((o) => o.id === (produit?.ouvrageId ?? r.ouvrageId)) ?? config.ouvrages[0];
     const perimetre = 2 * (r.largeur + r.hauteur);
-    const ml = arrondi(perimetre * r.quantite * profile.ratio, config.arrondi);
-    const coutAlu = (ml / config.longueurBarre) * profile.prixBarre;
     const surface = Math.round(r.largeur * r.hauteur * r.quantite * 100) / 100;
     const coutVitrage = surface * vitrage.prixM2;
-    const accessoires = config.accessoires
-      .filter((a) => a.qteStandard > 0)
-      .map((a) => {
-        const qte =
-          a.unite === "ml"
-            ? Math.round(perimetre * r.quantite * 10) / 10
-            : a.qteStandard * r.quantite;
-        return {
-          nom: a.nom,
-          qte,
-          unite: a.unite,
-          coutUnitaire: a.coutUnitaire,
-          total: qte * a.coutUnitaire,
-        };
-      });
+
+    const fiche = produit
+      ? ficheTechnique(produit, config, r.largeur, r.hauteur, r.quantite)
+      : undefined;
+
+    const profils: LigneProfil[] = fiche
+      ? fiche.profils.map((p) => ({
+          profileId: p.profileId,
+          ref: p.ref,
+          serie: p.serie,
+          detail: p.detail,
+          ml: p.ml,
+          cout: p.cout,
+        }))
+      : [
+          {
+            profileId: profile.id,
+            ref: profile.ref,
+            serie: profile.serie,
+            detail: "Périmètre × ratio catalogue",
+            ml: arrondi(perimetre * r.quantite * profile.ratio, config.arrondi),
+            cout:
+              (arrondi(perimetre * r.quantite * profile.ratio, config.arrondi) /
+                config.longueurBarre) *
+              profile.prixBarre,
+          },
+        ];
+
+    const ml = Math.round(profils.reduce((s, p) => s + p.ml, 0) * 100) / 100;
+    const coutAlu = profils.reduce((s, p) => s + p.cout, 0);
+
+    const accessoires =
+      fiche?.accessoires ??
+      config.accessoires
+        .filter((a) => a.qteStandard > 0)
+        .map((a) => {
+          const qte =
+            a.unite === "ml"
+              ? Math.round(perimetre * r.quantite * 10) / 10
+              : a.qteStandard * r.quantite;
+          return {
+            nom: a.nom,
+            qte,
+            unite: a.unite,
+            coutUnitaire: a.coutUnitaire,
+            total: qte * a.coutUnitaire,
+          };
+        });
     const coutAccessoires = accessoires.reduce((s, a) => s + a.total, 0);
-    const heures = Math.round(surface * 1.6 * ouvrage.coefficient * 10) / 10;
+    const heures =
+      Math.round(surface * (produit?.heuresM2 ?? 1.6) * ouvrage.coefficient * 10) / 10;
     const coutMainOeuvre = heures * config.mainOeuvreHeure;
     const sousTotal = coutAlu + coutVitrage + coutAccessoires + coutMainOeuvre;
 
