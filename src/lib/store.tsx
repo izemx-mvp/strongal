@@ -148,7 +148,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       markNotificationsRead,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config, dossiers, prospects, faq, documents, infos, agentActif, sidebarOpen, notifications],
+    [config, dossiers, prospects, faq, documents, infos, agentActif, sidebarOpen, theme, notifications],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
