@@ -203,6 +203,9 @@ export function computeLignes(dossier: Dossier, config: Config): LigneRepere[] {
 
     return {
       repere: r,
+      produitNom: produit?.nom ?? "Repère sur mesure",
+      produitId: produit?.id ?? "",
+      profils,
       profileId: profile.id,
       profileRef: profile.ref,
       profileSerie: profile.serie,
