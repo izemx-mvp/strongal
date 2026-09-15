@@ -389,13 +389,17 @@ function DossierDetail() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell className="font-medium">Profilé aluminium</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {l.profileRef} — {l.profileSerie} · {fmtNum(l.ml)} ml
-                        </TableCell>
-                        <TableCell className="text-right">{fmt(l.coutAlu)}</TableCell>
-                      </TableRow>
+                      {l.profils.map((p, pi) => (
+                        <TableRow key={`${p.profileId}-${pi}`}>
+                          <TableCell className="font-medium">
+                            {pi === 0 ? "Profilé aluminium" : ""}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {p.ref} — {p.serie} · {p.detail} · {fmtNum(p.ml)} ml
+                          </TableCell>
+                          <TableCell className="text-right">{fmt(p.cout)}</TableCell>
+                        </TableRow>
+                      ))}
                       <TableRow>
                         <TableCell className="font-medium">Vitrage</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
