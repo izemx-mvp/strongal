@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfigurationRoute = ConfigurationRouteImport.update({
+  id: '/configuration',
+  path: '/configuration',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -31,30 +37,34 @@ const DossiersIndexRoute = DossiersIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
   '/dossiers/': typeof DossiersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
   '/dossiers': typeof DossiersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
   '/dossiers/': typeof DossiersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/dossiers/'
+  fullPaths: '/' | '/configuration' | '/dashboard' | '/dossiers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/dossiers'
-  id: '__root__' | '/' | '/dashboard' | '/dossiers/'
+  to: '/' | '/configuration' | '/dashboard' | '/dossiers'
+  id: '__root__' | '/' | '/configuration' | '/dashboard' | '/dossiers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConfigurationRoute: typeof ConfigurationRoute
   DashboardRoute: typeof DashboardRoute
   DossiersIndexRoute: typeof DossiersIndexRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuration': {
+      id: '/configuration'
+      path: '/configuration'
+      fullPath: '/configuration'
+      preLoaderRoute: typeof ConfigurationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConfigurationRoute: ConfigurationRoute,
   DashboardRoute: DashboardRoute,
   DossiersIndexRoute: DossiersIndexRoute,
 }
