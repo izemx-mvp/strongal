@@ -42,8 +42,16 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { sidebarOpen, setSidebarOpen, notifications, markNotificationsRead, dossiers, prospects } =
-    useStore();
+  const {
+    sidebarOpen,
+    setSidebarOpen,
+    notifications,
+    markNotificationsRead,
+    dossiers,
+    prospects,
+    theme,
+    toggleTheme,
+  } = useStore();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [quick, setQuick] = useState("");
