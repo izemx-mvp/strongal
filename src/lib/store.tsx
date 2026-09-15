@@ -142,6 +142,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAgentActif,
       sidebarOpen,
       setSidebarOpen,
+      theme,
+      toggleTheme,
       notifications,
       markNotificationsRead,
     }),
