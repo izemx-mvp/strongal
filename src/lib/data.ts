@@ -79,6 +79,7 @@ export type Config = {
   vitrages: Vitrage[];
   accessoires: Accessoire[];
   ouvrages: Ouvrage[];
+  produits: Produit[];
   longueurBarre: number;
   longueurBarreAlt: number;
   seuilLargeur: number;
@@ -102,6 +103,7 @@ export type Repere = {
   ouvrageId: string;
   profileId: string;
   vitrageId: string;
+  produitId?: string;
   contraintes: string[];
   modifieManuellement?: boolean;
   raisonModif?: string;
