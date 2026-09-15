@@ -299,6 +299,50 @@ export function NouveauDossierDialog({
                   </Button>
                 </div>
 
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Produit fini souhaité par le client</Label>
+                  <Select
+                    value={r.produitId || "custom"}
+                    onValueChange={(v) =>
+                      setReperes((p) =>
+                        p.map((x, j) => {
+                          if (j !== i) return x;
+                          if (v === "custom") return { ...x, produitId: "" };
+                          const prod = config.produits.find((o) => o.id === v);
+                          return prod
+                            ? {
+                                ...x,
+                                produitId: prod.id,
+                                ouvrageId: prod.ouvrageId,
+                                profileId: prod.profileId,
+                                vitrageId: prod.vitrageId,
+                                designation: x.designation.trim() ? x.designation : prod.nom,
+                              }
+                            : { ...x, produitId: v };
+                        }),
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {config.produits.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {o.nom} — {o.categorie}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">Sur mesure (sans fiche technique)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <CompositionPreview
+                    produitId={r.produitId}
+                    largeur={r.largeur}
+                    hauteur={r.hauteur}
+                    quantite={r.quantite}
+                  />
+                </div>
+
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Type d'ouvrage</Label>
