@@ -35,6 +35,8 @@ type Store = {
   setAgentActif: React.Dispatch<React.SetStateAction<boolean>>;
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
   notifications: Notification[];
   markNotificationsRead: () => void;
 };
