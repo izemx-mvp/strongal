@@ -33,6 +33,38 @@ export type Ouvrage = {
   delaiFabrication: number;
 };
 
+/** Base de calcul d'un composant : dépend des dimensions du repère. */
+export type BaseComposant = "perimetre" | "largeur" | "hauteur" | "surface" | "unite";
+
+export const BASES_COMPOSANT: { value: BaseComposant; label: string; unite: string }[] = [
+  { value: "perimetre", label: "Périmètre (2×(L+H))", unite: "ml" },
+  { value: "largeur", label: "Largeur", unite: "ml" },
+  { value: "hauteur", label: "Hauteur", unite: "ml" },
+  { value: "surface", label: "Surface (L×H)", unite: "m²" },
+  { value: "unite", label: "À l'unité", unite: "u" },
+];
+
+export type ComposantProduit = {
+  id: string;
+  type: "profil" | "accessoire";
+  refId: string;
+  base: BaseComposant;
+  coef: number;
+};
+
+/** Produit fini du catalogue + sa fiche technique (nomenclature paramétrée). */
+export type Produit = {
+  id: string;
+  nom: string;
+  categorie: string;
+  description: string;
+  ouvrageId: string;
+  profileId: string;
+  vitrageId: string;
+  heuresM2: number;
+  composants: ComposantProduit[];
+};
+
 export type Qualification = {
   budgetMin: number;
   zones: string[];
