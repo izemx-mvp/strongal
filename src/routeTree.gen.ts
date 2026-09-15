@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
+import { Route as ProspectsIndexRouteImport } from './routes/prospects.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const DossiersIndexRoute = DossiersIndexRouteImport.update({
   path: '/dossiers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProspectsIndexRoute = ProspectsIndexRouteImport.update({
+  id: '/prospects/',
+  path: '/prospects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
   '/dossiers/': typeof DossiersIndexRoute
+  '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
   '/dossiers': typeof DossiersIndexRoute
+  '/prospects': typeof ProspectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,21 @@ export interface FileRoutesById {
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
   '/dossiers/': typeof DossiersIndexRoute
+  '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/configuration' | '/dashboard' | '/dossiers/'
+  fullPaths:
+    '/' | '/configuration' | '/dashboard' | '/dossiers/' | '/prospects/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/configuration' | '/dashboard' | '/dossiers'
-  id: '__root__' | '/' | '/configuration' | '/dashboard' | '/dossiers/'
+  to: '/' | '/configuration' | '/dashboard' | '/dossiers' | '/prospects'
+  id:
+    | '__root__'
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/dossiers/'
+    | '/prospects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +83,7 @@ export interface RootRouteChildren {
   ConfigurationRoute: typeof ConfigurationRoute
   DashboardRoute: typeof DashboardRoute
   DossiersIndexRoute: typeof DossiersIndexRoute
+  ProspectsIndexRoute: typeof ProspectsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DossiersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prospects/': {
+      id: '/prospects/'
+      path: '/prospects'
+      fullPath: '/prospects/'
+      preLoaderRoute: typeof ProspectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +131,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfigurationRoute: ConfigurationRoute,
   DashboardRoute: DashboardRoute,
   DossiersIndexRoute: DossiersIndexRoute,
+  ProspectsIndexRoute: ProspectsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
