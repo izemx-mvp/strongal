@@ -38,11 +38,10 @@ function useCommercialDraft(dossier: Dossier) {
   const { config, updateDossier, utilisateur } = useStore();
   const saved = getCommercial(dossier, config);
   const [draft, setDraft] = useState<Commercial>(saved);
-  const savedJson = JSON.stringify(dossier.commercial ?? null);
+  const savedJson = JSON.stringify(saved);
   useEffect(() => {
-    setDraft(getCommercial(dossier, config));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dossier.ref, savedJson]);
+    setDraft(JSON.parse(savedJson));
+  }, [savedJson]);
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
   const save = (extra: Partial<Dossier> = {}, extraHisto: { label: string; action: string; avant?: string; apres?: string }[] = []) => {
     const diffs = diffCommercial(saved, draft);
@@ -399,7 +398,7 @@ export function DossierOverview({ dossier, onTab }: { dossier: Dossier; onTab: (
   const next = plan.find((x) => !x.envoi);
   const facs = factures.filter((f) => f.dossierRef === dossier.ref);
   return (
-    <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+    <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
       <Bloc titre="Client">
         <p className="font-semibold">{dossier.client}</p>
         <p className="text-xs">{dossier.contact}</p>

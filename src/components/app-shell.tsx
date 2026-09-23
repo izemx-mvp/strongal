@@ -211,7 +211,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 })}
               </nav>
 
-              <div className="relative hidden w-64 lg:block">
+              <div className="relative hidden w-56 xl:block">
                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={quick}

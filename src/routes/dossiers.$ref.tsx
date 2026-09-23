@@ -16,6 +16,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
+import {
+  DossierChiffrage,
+  DossierDevis,
+  DossierFactures,
+  DossierOverview,
+} from "@/components/erp/dossier-erp";
+import { RelancesDossier } from "@/components/erp/relances";
+import { SuiviChantier } from "@/components/erp/suivi-chantier";
 import { StatutBadge } from "@/components/badges";
 import { PageTransition, ShimmerBlock } from "@/components/motion-bits";
 import { Button } from "@/components/ui/button";
@@ -87,7 +95,6 @@ function DossierDetail() {
   const [loading, setLoading] = useState(true);
   const [adjust, setAdjust] = useState<string | null>(null);
   const [zone, setZone] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
   const [notes, setNotes] = useState(dossier?.notes ?? "");
   const [chatOpen, setChatOpen] = useState(false);
 
@@ -143,52 +150,9 @@ function DossierDetail() {
   };
 
   const genererDevis = () => {
-    const version = (dossier.devis.at(-1)?.version ?? 0) + 1;
-    const nouvelle: DevisVersion = {
-      version,
-      date: nowStr().slice(0, 10),
-      total: totaux.totalTTC,
-      statut: "Envoyé",
-    };
-    updateDossier(
-      dossier.ref,
-      {
-        devis: [...dossier.devis, nouvelle],
-        etape: Math.max(dossier.etape, 3),
-        statut: "Devis envoyé",
-      },
-      { auteur: "M. Aboulssaad", label: `Devis technique v${version} généré et envoyé` },
-    );
-    toast.success(`Devis technique v${version} généré`);
     setTab("devis");
+    toast.info("Vérifiez le devis puis cliquez sur « Générer le devis »");
   };
-
-  const devisTexte = () =>
-    [
-      "STRONGAL — DEVIS TECHNIQUE",
-      "Menuiserie aluminium premium — Casablanca, Maroc",
-      `Référence dossier : ${dossier.ref}`,
-      `Client : ${dossier.client} — ${dossier.contact}`,
-      `Chantier : ${dossier.adresse}`,
-      `Date : ${nowStr().slice(0, 10)}`,
-      "",
-      "DÉTAIL PAR REPÈRE",
-      ...lignes.map(
-        (l) =>
-          `- ${l.repere.designation} (${l.repere.largeur} × ${l.repere.hauteur} m × ${l.repere.quantite}) | Profilé ${l.profileRef} ${fmtNum(l.ml)} ml | Vitrage ${l.vitrageType} ${fmtNum(l.surface)} m² | MO ${fmtNum(l.heures, 1)} h | Sous-total ${fmt(l.sousTotal)}`,
-      ),
-      "",
-      `Total matière : ${fmt(totaux.matiere)}`,
-      `Total main d'œuvre : ${fmt(totaux.mainOeuvre)}`,
-      `Transport : ${fmt(totaux.transport)}`,
-      `Marge (${totaux.margeTaux} %) : ${fmt(totaux.marge)}`,
-      `TOTAL HT : ${fmt(totaux.totalHT)}`,
-      `TVA 20 % : ${fmt(totaux.tva)}`,
-      `TOTAL TTC : ${fmt(totaux.totalTTC)}`,
-      "",
-      "Mentions légales : devis valable 30 jours. Acompte de 40 % à la commande.",
-      "Strongal SARL — ICE 000000000000000 — RC Casablanca — contact@strongal.ma",
-    ].join("\n");
 
   return (
     <AppShell>
@@ -211,8 +175,13 @@ function DossierDetail() {
           )}
         </div>
 
-        {/* Stepper */}
+        <DossierOverview dossier={dossier} onTab={setTab} />
+
+        {/* Workflow administratif / commercial (distinct du suivi chantier) */}
         <Card className="glass glass-hover mb-4 p-5">
+          <p className="mb-4 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+            Statut administratif / commercial du dossier
+          </p>
           <div className="relative flex justify-between gap-2">
             <div className="absolute top-4 right-4 left-4 h-1 rounded-full bg-muted" />
             <motion.div
@@ -247,7 +216,7 @@ function DossierDetail() {
         </Card>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList className="h-auto flex-wrap justify-start">
             <TabsTrigger value="synthese">Fiche de synthèse</TabsTrigger>
             <TabsTrigger value="chiffrage" disabled={dossier.etape < 1}>
               Chiffrage matières
@@ -255,11 +224,26 @@ function DossierDetail() {
             <TabsTrigger value="validation" disabled={dossier.etape < 2}>
               Validation
             </TabsTrigger>
-            <TabsTrigger value="devis" disabled={dossier.etape < 3}>
-              Devis technique
-            </TabsTrigger>
-            <TabsTrigger value="historique">Historique</TabsTrigger>
+            <TabsTrigger value="commercial">Dossier de chiffrage</TabsTrigger>
+            <TabsTrigger value="devis">Devis</TabsTrigger>
+            <TabsTrigger value="suivi">Suivi chantier</TabsTrigger>
+            <TabsTrigger value="relances">Relances</TabsTrigger>
+            <TabsTrigger value="factures">Factures</TabsTrigger>
+            <TabsTrigger value="historique">Historique & audit</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="commercial" className="mt-4">
+            <DossierChiffrage dossier={dossier} />
+          </TabsContent>
+          <TabsContent value="suivi" className="mt-4">
+            <SuiviChantier dossier={dossier} />
+          </TabsContent>
+          <TabsContent value="relances" className="mt-4">
+            <RelancesDossier dossier={dossier} />
+          </TabsContent>
+          <TabsContent value="factures" className="mt-4">
+            <DossierFactures dossier={dossier} />
+          </TabsContent>
 
           {/* Synthèse */}
           <TabsContent value="synthese" className="mt-4 space-y-4">
@@ -576,86 +560,8 @@ function DossierDetail() {
           </TabsContent>
 
           {/* Devis */}
-          <TabsContent value="devis" className="mt-4 space-y-4">
-            <Card className="glass glass-hover p-5">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">Devis technique</h2>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setPreview(true)}>
-                    <Eye className="mr-1 h-4 w-4" /> Aperçu
-                  </Button>
-                  <Button
-                    className="shine"
-                    onClick={() => {
-                      downloadTexte(`Devis-${dossier.ref}.txt`, devisTexte());
-                      toast.success("Devis téléchargé");
-                    }}
-                  >
-                    <Download className="mr-1 h-4 w-4" /> Télécharger
-                  </Button>
-                  <Button variant="outline" onClick={genererDevis}>
-                    Générer une nouvelle version
-                  </Button>
-                </div>
-              </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Version</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total TTC</TableHead>
-                    <TableHead>Statut de suivi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dossier.devis.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                        Aucun devis généré pour l'instant
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {dossier.devis.map((d) => (
-                    <TableRow key={d.version}>
-                      <TableCell className="font-semibold">v{d.version}</TableCell>
-                      <TableCell>{d.date}</TableCell>
-                      <TableCell>{fmt(d.total || totaux.totalTTC)}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={d.statut}
-                          onValueChange={(v) => {
-                            updateDossier(
-                              dossier.ref,
-                              {
-                                devis: dossier.devis.map((x) =>
-                                  x.version === d.version
-                                    ? { ...x, statut: v as DevisVersion["statut"] }
-                                    : x,
-                                ),
-                              },
-                              { auteur: "M. Aboulssaad", label: `Devis v${d.version} — statut « ${v} »` },
-                            );
-                            toast.success(`Devis v${d.version} : ${v}`);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-48">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["Envoyé", "Vu par le client", "Accepté", "Refusé"].map((s) => (
-                              <SelectItem key={s} value={s}>
-                                {s}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+          <TabsContent value="devis" className="mt-4">
+            <DossierDevis dossier={dossier} />
           </TabsContent>
 
           {/* Historique */}
@@ -664,7 +570,7 @@ function DossierDetail() {
               <h2 className="mb-4 text-lg font-semibold">Historique du dossier</h2>
               <div className="relative space-y-4 pl-6">
                 <span className="absolute top-1 bottom-1 left-[7px] w-px bg-border" />
-                {dossier.historique.map((h, i) => (
+                {[...dossier.historique].reverse().map((h, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, x: 10 }}
@@ -673,7 +579,21 @@ function DossierDetail() {
                     className="relative"
                   >
                     <span className="absolute top-1.5 -left-6 h-3.5 w-3.5 rounded-full border-2 border-background bg-warm" />
-                    <p className="text-sm font-medium">{h.label}</p>
+                    <p className="text-sm font-medium">
+                      {h.action && (
+                        <span className="mr-2 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold">
+                          {h.action}
+                        </span>
+                      )}
+                      {h.label}
+                    </p>
+                    {(h.avant || h.apres) && (
+                      <p className="text-xs">
+                        <span className="text-muted-foreground line-through">{h.avant}</span>
+                        {" → "}
+                        <span className="font-semibold text-warm">{h.apres}</span>
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {h.date} · {h.auteur}
                     </p>
@@ -725,85 +645,6 @@ function DossierDetail() {
             setZone(null);
           }}
         />
-
-        <Dialog open={preview} onOpenChange={setPreview}>
-          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Aperçu du devis technique — {dossier.ref}</DialogTitle>
-            </DialogHeader>
-            <div className="rounded-xl border bg-card p-8 text-sm">
-              <div className="flex items-start justify-between border-b pb-4">
-                <img src={LOGO_URL} alt="Strongal" className="h-12 object-contain" />
-                <div className="text-right text-xs text-muted-foreground">
-                  <p>Strongal SARL — Menuiserie aluminium</p>
-                  <p>Zone industrielle Ain Sebaâ, Casablanca</p>
-                  <p>contact@strongal.ma · +212 669-910658</p>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <p>
-                  <b>Client :</b> {dossier.client}
-                </p>
-                <p>
-                  <b>Référence :</b> {dossier.ref}
-                </p>
-                <p>
-                  <b>Chantier :</b> {dossier.adresse}
-                </p>
-                <p>
-                  <b>Date :</b> {nowStr().slice(0, 10)}
-                </p>
-              </div>
-              <table className="mt-5 w-full text-xs">
-                <thead className="border-b">
-                  <tr className="text-left">
-                    <th className="py-2">Repère</th>
-                    <th>Profilé / vitrage</th>
-                    <th className="text-right">Montant</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lignes.map((l) => (
-                    <tr key={l.repere.id} className="border-b">
-                      <td className="py-2">
-                        {l.repere.designation}
-                        <br />
-                        <span className="text-muted-foreground">
-                          {l.repere.largeur} × {l.repere.hauteur} m × {l.repere.quantite}
-                        </span>
-                      </td>
-                      <td>
-                        {l.profileRef} · {l.vitrageType}
-                      </td>
-                      <td className="text-right">{fmt(l.sousTotal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="mt-4 ml-auto w-64 space-y-1 text-xs">
-                <Ligne label="Total HT" value={fmt(totaux.totalHT)} />
-                <Ligne label="TVA 20 %" value={fmt(totaux.tva)} />
-                <Ligne label="Total TTC" value={fmt(totaux.totalTTC)} bold />
-              </div>
-              <p className="mt-6 text-[10px] text-muted-foreground">
-                Devis valable 30 jours. Acompte de 40 % à la commande, 40 % au lancement de la
-                fabrication, 20 % à la réception. TVA 20 % applicable. Strongal SARL — RC Casablanca —
-                ICE 000000000000000.
-              </p>
-            </div>
-            <DialogFooter>
-              <Button
-                className="shine"
-                onClick={() => {
-                  downloadTexte(`Devis-${dossier.ref}.txt`, devisTexte());
-                  toast.success("Devis téléchargé");
-                }}
-              >
-                <Download className="mr-1 h-4 w-4" /> Télécharger
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         <AssistantPanel dossier={dossier} open={chatOpen} setOpen={setChatOpen} />
       </PageTransition>
