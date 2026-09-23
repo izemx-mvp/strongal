@@ -17,12 +17,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Accès au backoffice Strongal : chiffrage aluminium assisté par IA, prospects et service client.",
+          "Accès au backoffice Strongal : chiffrage aluminium assisté par IA, suivi chantier et facturation.",
       },
       { property: "og:title", content: "Connexion — Strongal Control" },
       {
         property: "og:description",
-        content: "Pilotez vos chiffrages, vos prospects et votre service client.",
+        content: "Pilotez vos chiffrages, vos chantiers et votre facturation.",
       },
     ],
   }),
@@ -122,7 +122,7 @@ function Login() {
         <div className="absolute right-10 bottom-14 left-10 text-primary-foreground">
           <h2 className="text-4xl font-bold">Strongal Control</h2>
           <p className="mt-3 max-w-md text-base opacity-85">
-            Pilotez vos chiffrages, vos prospects et votre service client, du terrain au dossier
+            Pilotez vos chiffrages, vos chantiers et votre facturation, du terrain au dossier
             signé.
           </p>
         </div>

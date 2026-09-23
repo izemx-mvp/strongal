@@ -12,11 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ServiceClientRouteImport } from './routes/service-client'
+import { Route as FacturesRouteImport } from './routes/factures'
+import { Route as RelancesRouteImport } from './routes/relances'
 import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
 import { Route as DossiersRefRouteImport } from './routes/dossiers.$ref'
-import { Route as ProspectsIndexRouteImport } from './routes/prospects.index'
-import { Route as ProspectsIdRouteImport } from './routes/prospects.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,9 +32,14 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ServiceClientRoute = ServiceClientRouteImport.update({
-  id: '/service-client',
-  path: '/service-client',
+const FacturesRoute = FacturesRouteImport.update({
+  id: '/factures',
+  path: '/factures',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelancesRoute = RelancesRouteImport.update({
+  id: '/relances',
+  path: '/relances',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DossiersIndexRoute = DossiersIndexRouteImport.update({
@@ -48,47 +52,34 @@ const DossiersRefRoute = DossiersRefRouteImport.update({
   path: '/dossiers/$ref',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProspectsIndexRoute = ProspectsIndexRouteImport.update({
-  id: '/prospects/',
-  path: '/prospects/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProspectsIdRoute = ProspectsIdRouteImport.update({
-  id: '/prospects/$id',
-  path: '/prospects/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
-  '/service-client': typeof ServiceClientRoute
+  '/factures': typeof FacturesRoute
+  '/relances': typeof RelancesRoute
   '/dossiers/$ref': typeof DossiersRefRoute
-  '/prospects/$id': typeof ProspectsIdRoute
   '/dossiers/': typeof DossiersIndexRoute
-  '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
-  '/service-client': typeof ServiceClientRoute
+  '/factures': typeof FacturesRoute
+  '/relances': typeof RelancesRoute
   '/dossiers/$ref': typeof DossiersRefRoute
-  '/prospects/$id': typeof ProspectsIdRoute
   '/dossiers': typeof DossiersIndexRoute
-  '/prospects': typeof ProspectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
-  '/service-client': typeof ServiceClientRoute
+  '/factures': typeof FacturesRoute
+  '/relances': typeof RelancesRoute
   '/dossiers/$ref': typeof DossiersRefRoute
-  '/prospects/$id': typeof ProspectsIdRoute
   '/dossiers/': typeof DossiersIndexRoute
-  '/prospects/': typeof ProspectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,42 +87,38 @@ export interface FileRouteTypes {
     | '/'
     | '/configuration'
     | '/dashboard'
-    | '/service-client'
+    | '/factures'
+    | '/relances'
     | '/dossiers/$ref'
-    | '/prospects/$id'
     | '/dossiers/'
-    | '/prospects/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/configuration'
     | '/dashboard'
-    | '/service-client'
+    | '/factures'
+    | '/relances'
     | '/dossiers/$ref'
-    | '/prospects/$id'
     | '/dossiers'
-    | '/prospects'
   id:
     | '__root__'
     | '/'
     | '/configuration'
     | '/dashboard'
-    | '/service-client'
+    | '/factures'
+    | '/relances'
     | '/dossiers/$ref'
-    | '/prospects/$id'
     | '/dossiers/'
-    | '/prospects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfigurationRoute: typeof ConfigurationRoute
   DashboardRoute: typeof DashboardRoute
-  ServiceClientRoute: typeof ServiceClientRoute
+  FacturesRoute: typeof FacturesRoute
+  RelancesRoute: typeof RelancesRoute
   DossiersRefRoute: typeof DossiersRefRoute
-  ProspectsIdRoute: typeof ProspectsIdRoute
   DossiersIndexRoute: typeof DossiersIndexRoute
-  ProspectsIndexRoute: typeof ProspectsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -157,11 +144,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/service-client': {
-      id: '/service-client'
-      path: '/service-client'
-      fullPath: '/service-client'
-      preLoaderRoute: typeof ServiceClientRouteImport
+    '/factures': {
+      id: '/factures'
+      path: '/factures'
+      fullPath: '/factures'
+      preLoaderRoute: typeof FacturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relances': {
+      id: '/relances'
+      path: '/relances'
+      fullPath: '/relances'
+      preLoaderRoute: typeof RelancesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dossiers/': {
@@ -178,20 +172,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DossiersRefRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prospects/': {
-      id: '/prospects/'
-      path: '/prospects'
-      fullPath: '/prospects/'
-      preLoaderRoute: typeof ProspectsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prospects/$id': {
-      id: '/prospects/$id'
-      path: '/prospects/$id'
-      fullPath: '/prospects/$id'
-      preLoaderRoute: typeof ProspectsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -199,11 +179,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfigurationRoute: ConfigurationRoute,
   DashboardRoute: DashboardRoute,
-  ServiceClientRoute: ServiceClientRoute,
+  FacturesRoute: FacturesRoute,
+  RelancesRoute: RelancesRoute,
   DossiersRefRoute: DossiersRefRoute,
-  ProspectsIdRoute: ProspectsIdRoute,
   DossiersIndexRoute: DossiersIndexRoute,
-  ProspectsIndexRoute: ProspectsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

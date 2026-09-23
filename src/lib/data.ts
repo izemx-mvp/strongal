@@ -114,10 +114,18 @@ export type DevisVersion = {
   version: number;
   date: string;
   total: number;
-  statut: "Envoyé" | "Vu par le client" | "Accepté" | "Refusé";
+  statut: "Envoyé" | "Vu par le client" | "Modification demandée" | "Accepté" | "Refusé";
+  snapshot?: import("./erp").DevisSnapshot;
 };
 
-export type HistoEntry = { date: string; auteur: string; label: string };
+export type HistoEntry = {
+  date: string;
+  auteur: string;
+  label: string;
+  action?: string;
+  avant?: string;
+  apres?: string;
+};
 
 export type StatutDossier =
   | "Nouveau"
@@ -147,6 +155,11 @@ export type Dossier = {
   historique: HistoEntry[];
   resume: string[];
   isNew?: boolean;
+  commercial?: import("./erp").Commercial;
+  devisInfo?: import("./erp").DevisInfo;
+  suivi?: import("./erp").Suivi;
+  relances?: import("./erp").RelanceEnvoyee[];
+  demandesClient?: import("./erp").DemandeClient[];
 };
 
 export type StatutProspect =
