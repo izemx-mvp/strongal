@@ -1,19 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   defaultConfig,
-  initialDocuments,
   initialDossiers,
-  initialFaq,
-  initialInfos,
-  initialProspects,
   type Config,
-  type DocItem,
   type Dossier,
-  type Faq,
   type HistoEntry,
-  type InfosPratiques,
-  type Prospect,
 } from "./data";
+import {
+  defaultRelanceConfig,
+  defaultTemplates,
+  type Facture,
+  type RelanceConfig,
+  type RelanceTemplate,
+} from "./erp";
 
 export type Notification = { id: string; label: string; time: string; lu: boolean };
 
@@ -22,17 +21,18 @@ type Store = {
   setConfig: React.Dispatch<React.SetStateAction<Config>>;
   dossiers: Dossier[];
   setDossiers: React.Dispatch<React.SetStateAction<Dossier[]>>;
-  updateDossier: (ref: string, patch: Partial<Dossier>, histo?: Omit<HistoEntry, "date">) => void;
-  prospects: Prospect[];
-  setProspects: React.Dispatch<React.SetStateAction<Prospect[]>>;
-  faq: Faq[];
-  setFaq: React.Dispatch<React.SetStateAction<Faq[]>>;
-  documents: DocItem[];
-  setDocuments: React.Dispatch<React.SetStateAction<DocItem[]>>;
-  infos: InfosPratiques;
-  setInfos: React.Dispatch<React.SetStateAction<InfosPratiques>>;
-  agentActif: boolean;
-  setAgentActif: React.Dispatch<React.SetStateAction<boolean>>;
+  updateDossier: (
+    ref: string,
+    patch: Partial<Dossier>,
+    histo?: Omit<HistoEntry, "date"> | Omit<HistoEntry, "date">[],
+  ) => void;
+  factures: Facture[];
+  setFactures: React.Dispatch<React.SetStateAction<Facture[]>>;
+  relanceConfig: RelanceConfig;
+  setRelanceConfig: React.Dispatch<React.SetStateAction<RelanceConfig>>;
+  templates: RelanceTemplate[];
+  setTemplates: React.Dispatch<React.SetStateAction<RelanceTemplate[]>>;
+  utilisateur: string;
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   theme: "light" | "dark";
@@ -41,6 +41,8 @@ type Store = {
   markNotificationsRead: () => void;
 };
 
+const STORAGE_KEY = "strongal-erp-v1";
+
 const StoreContext = createContext<Store | null>(null);
 
 export const nowStr = () => new Date().toISOString().slice(0, 16).replace("T", " ");
@@ -48,11 +50,28 @@ export const nowStr = () => new Date().toISOString().slice(0, 16).replace("T", "
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<Config>(defaultConfig);
   const [dossiers, setDossiers] = useState<Dossier[]>(initialDossiers);
-  const [prospects, setProspects] = useState<Prospect[]>(initialProspects);
-  const [faq, setFaq] = useState<Faq[]>(initialFaq);
-  const [documents, setDocuments] = useState<DocItem[]>(initialDocuments);
-  const [infos, setInfos] = useState<InfosPratiques>(initialInfos);
-  const [agentActif, setAgentActif] = useState(true);
+  const [factures, setFactures] = useState<Facture[]>([]);
+  const [relanceConfig, setRelanceConfig] = useState<RelanceConfig>(defaultRelanceConfig);
+  const [templates, setTemplates] = useState<RelanceTemplate[]>(defaultTemplates);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Persistance locale : les modifications survivent au rechargement.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.config) setConfig(s.config);
+        if (s.dossiers) setDossiers(s.dossiers);
+        if (s.factures) setFactures(s.factures);
+        if (s.relanceConfig) setRelanceConfig(s.relanceConfig);
+        if (s.templates) setTemplates(s.templates);
+      }
+    } catch {
+      /* état corrompu : on repart des données initiales */
+    }
+    setHydrated(true);
+  }, []);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -66,6 +85,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem("strongal-theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ config, dossiers, factures, relanceConfig, templates }),
+    );
+  }, [hydrated, config, dossiers, factures, relanceConfig, templates]);
+
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -76,13 +103,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     {
       id: "n2",
-      label: "Agent Service Client a répondu à 3 questions via WhatsApp",
+      label: "Fabrication démarrée sur STR-2026-004 — Mohamed",
       time: "il y a 40 min",
       lu: false,
     },
     {
       id: "n3",
-      label: "Agent Qualification a qualifié un nouveau prospect (Reda Chraibi)",
+      label: "2 relances commerciales à envoyer aujourd'hui",
       time: "il y a 2 h",
       lu: false,
     },
@@ -113,7 +140,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ? {
               ...d,
               ...patch,
-              historique: histo ? [...d.historique, { date: nowStr(), ...histo }] : d.historique,
+              historique: histo
+                ? [
+                    ...d.historique,
+                    ...(Array.isArray(histo) ? histo : [histo]).map((h) => ({ date: nowStr(), ...h })),
+                  ]
+                : d.historique,
             }
           : d,
       ),
@@ -130,16 +162,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dossiers,
       setDossiers,
       updateDossier,
-      prospects,
-      setProspects,
-      faq,
-      setFaq,
-      documents,
-      setDocuments,
-      infos,
-      setInfos,
-      agentActif,
-      setAgentActif,
+      factures,
+      setFactures,
+      relanceConfig,
+      setRelanceConfig,
+      templates,
+      setTemplates,
+      utilisateur: "M. Aboulssaad",
       sidebarOpen,
       setSidebarOpen,
       theme,
@@ -148,7 +177,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       markNotificationsRead,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config, dossiers, prospects, faq, documents, infos, agentActif, sidebarOpen, theme, notifications],
+    [config, dossiers, factures, relanceConfig, templates, sidebarOpen, theme, notifications],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
