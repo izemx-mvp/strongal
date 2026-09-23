@@ -9,6 +9,7 @@ import {
 import {
   defaultRelanceConfig,
   defaultTemplates,
+  nowStr,
   type Facture,
   type RelanceConfig,
   type RelanceTemplate,
@@ -44,8 +45,6 @@ type Store = {
 const STORAGE_KEY = "strongal-erp-v2";
 
 const StoreContext = createContext<Store | null>(null);
-
-export const nowStr = () => new Date().toISOString().slice(0, 16).replace("T", " ");
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<Config>(defaultConfig);

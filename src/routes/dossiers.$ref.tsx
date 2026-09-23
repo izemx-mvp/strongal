@@ -44,8 +44,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { computeDebitage, computeLignes, computeTotaux, fmt, fmtNum } from "@/lib/calc";
 import { CHECKLIST_ITEMS, LOGO_URL, type DevisVersion, type Dossier, type StatutDossier } from "@/lib/data";
 import { downloadTexte } from "@/lib/download";
-import { getSuivi, PHASES } from "@/lib/erp";
-import { nowStr, useStore } from "@/lib/store";
+import { getSuivi, nowStr, PHASES } from "@/lib/erp";
+import { useStore } from "@/lib/store";
 
 const ETAPES = [
   { nom: "Collecte", phrase: "Vérifiez les coordonnées, le chantier et tous les repères relevés.", tab: "synthese" },
