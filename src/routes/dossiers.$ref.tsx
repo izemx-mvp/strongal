@@ -16,6 +16,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
+import {
+  DossierChiffrage,
+  DossierDevis,
+  DossierFactures,
+  DossierOverview,
+} from "@/components/erp/dossier-erp";
+import { RelancesDossier } from "@/components/erp/relances";
+import { SuiviChantier } from "@/components/erp/suivi-chantier";
 import { StatutBadge } from "@/components/badges";
 import { PageTransition, ShimmerBlock } from "@/components/motion-bits";
 import { Button } from "@/components/ui/button";
@@ -211,8 +219,13 @@ function DossierDetail() {
           )}
         </div>
 
-        {/* Stepper */}
+        <DossierOverview dossier={dossier} onTab={setTab} />
+
+        {/* Workflow administratif / commercial (distinct du suivi chantier) */}
         <Card className="glass glass-hover mb-4 p-5">
+          <p className="mb-4 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+            Statut administratif / commercial du dossier
+          </p>
           <div className="relative flex justify-between gap-2">
             <div className="absolute top-4 right-4 left-4 h-1 rounded-full bg-muted" />
             <motion.div
@@ -247,7 +260,7 @@ function DossierDetail() {
         </Card>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList className="h-auto flex-wrap justify-start">
             <TabsTrigger value="synthese">Fiche de synthèse</TabsTrigger>
             <TabsTrigger value="chiffrage" disabled={dossier.etape < 1}>
               Chiffrage matières
@@ -255,11 +268,26 @@ function DossierDetail() {
             <TabsTrigger value="validation" disabled={dossier.etape < 2}>
               Validation
             </TabsTrigger>
-            <TabsTrigger value="devis" disabled={dossier.etape < 3}>
-              Devis technique
-            </TabsTrigger>
-            <TabsTrigger value="historique">Historique</TabsTrigger>
+            <TabsTrigger value="commercial">Dossier de chiffrage</TabsTrigger>
+            <TabsTrigger value="devis">Devis</TabsTrigger>
+            <TabsTrigger value="suivi">Suivi chantier</TabsTrigger>
+            <TabsTrigger value="relances">Relances</TabsTrigger>
+            <TabsTrigger value="factures">Factures</TabsTrigger>
+            <TabsTrigger value="historique">Historique & audit</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="commercial" className="mt-4">
+            <DossierChiffrage dossier={dossier} />
+          </TabsContent>
+          <TabsContent value="suivi" className="mt-4">
+            <SuiviChantier dossier={dossier} />
+          </TabsContent>
+          <TabsContent value="relances" className="mt-4">
+            <RelancesDossier dossier={dossier} />
+          </TabsContent>
+          <TabsContent value="factures" className="mt-4">
+            <DossierFactures dossier={dossier} />
+          </TabsContent>
 
           {/* Synthèse */}
           <TabsContent value="synthese" className="mt-4 space-y-4">
@@ -576,86 +604,8 @@ function DossierDetail() {
           </TabsContent>
 
           {/* Devis */}
-          <TabsContent value="devis" className="mt-4 space-y-4">
-            <Card className="glass glass-hover p-5">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">Devis technique</h2>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setPreview(true)}>
-                    <Eye className="mr-1 h-4 w-4" /> Aperçu
-                  </Button>
-                  <Button
-                    className="shine"
-                    onClick={() => {
-                      downloadTexte(`Devis-${dossier.ref}.txt`, devisTexte());
-                      toast.success("Devis téléchargé");
-                    }}
-                  >
-                    <Download className="mr-1 h-4 w-4" /> Télécharger
-                  </Button>
-                  <Button variant="outline" onClick={genererDevis}>
-                    Générer une nouvelle version
-                  </Button>
-                </div>
-              </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Version</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total TTC</TableHead>
-                    <TableHead>Statut de suivi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dossier.devis.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                        Aucun devis généré pour l'instant
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {dossier.devis.map((d) => (
-                    <TableRow key={d.version}>
-                      <TableCell className="font-semibold">v{d.version}</TableCell>
-                      <TableCell>{d.date}</TableCell>
-                      <TableCell>{fmt(d.total || totaux.totalTTC)}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={d.statut}
-                          onValueChange={(v) => {
-                            updateDossier(
-                              dossier.ref,
-                              {
-                                devis: dossier.devis.map((x) =>
-                                  x.version === d.version
-                                    ? { ...x, statut: v as DevisVersion["statut"] }
-                                    : x,
-                                ),
-                              },
-                              { auteur: "M. Aboulssaad", label: `Devis v${d.version} — statut « ${v} »` },
-                            );
-                            toast.success(`Devis v${d.version} : ${v}`);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-48">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["Envoyé", "Vu par le client", "Accepté", "Refusé"].map((s) => (
-                              <SelectItem key={s} value={s}>
-                                {s}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+          <TabsContent value="devis" className="mt-4">
+            <DossierDevis dossier={dossier} />
           </TabsContent>
 
           {/* Historique */}
@@ -664,7 +614,7 @@ function DossierDetail() {
               <h2 className="mb-4 text-lg font-semibold">Historique du dossier</h2>
               <div className="relative space-y-4 pl-6">
                 <span className="absolute top-1 bottom-1 left-[7px] w-px bg-border" />
-                {dossier.historique.map((h, i) => (
+                {[...dossier.historique].reverse().map((h, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, x: 10 }}
@@ -673,7 +623,21 @@ function DossierDetail() {
                     className="relative"
                   >
                     <span className="absolute top-1.5 -left-6 h-3.5 w-3.5 rounded-full border-2 border-background bg-warm" />
-                    <p className="text-sm font-medium">{h.label}</p>
+                    <p className="text-sm font-medium">
+                      {h.action && (
+                        <span className="mr-2 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold">
+                          {h.action}
+                        </span>
+                      )}
+                      {h.label}
+                    </p>
+                    {(h.avant || h.apres) && (
+                      <p className="text-xs">
+                        <span className="text-muted-foreground line-through">{h.avant}</span>
+                        {" → "}
+                        <span className="font-semibold text-warm">{h.apres}</span>
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {h.date} · {h.auteur}
                     </p>
