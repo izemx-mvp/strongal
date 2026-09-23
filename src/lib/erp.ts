@@ -88,7 +88,7 @@ export function initCommercial(d: Dossier, config: Config): Commercial {
       const q = Math.max(1, l.repere.quantite);
       const achatU = Math.round((l.coutAlu + l.coutVitrage + l.coutAccessoires) / q);
       return {
-        id: uid(),
+        id: `l-${l.repere.id}`,
         repereId: l.repere.id,
         designation: l.produitNom === "Repère sur mesure" ? l.repere.designation : l.produitNom,
         description: `${l.repere.designation} — ${l.repere.largeur} × ${l.repere.hauteur} m, ${l.profileRef}, ${l.vitrageType}`,
@@ -99,9 +99,9 @@ export function initCommercial(d: Dossier, config: Config): Commercial {
       };
     }),
     frais: [
-      { id: uid(), type: "mainOeuvre", libelle: "Main-d'œuvre atelier", description: `${Math.round(heures)} h de fabrication`, montant: Math.round(mo) },
-      { id: uid(), type: "pose", libelle: "Pose sur chantier", description: "Équipe de pose Strongal", montant: Math.round(heures * 0.45 * config.mainOeuvreHeure) },
-      { id: uid(), type: "livraison", libelle: "Livraison", description: "Livraison chantier par camion Strongal", montant: config.transportForfait },
+      { id: "f-mo", type: "mainOeuvre", libelle: "Main-d'œuvre atelier", description: `${Math.round(heures)} h de fabrication`, montant: Math.round(mo) },
+      { id: "f-pose", type: "pose", libelle: "Pose sur chantier", description: "Équipe de pose Strongal", montant: Math.round(heures * 0.45 * config.mainOeuvreHeure) },
+      { id: "f-liv", type: "livraison", libelle: "Livraison", description: "Livraison chantier par camion Strongal", montant: config.transportForfait },
     ],
     remise: { mode: "pct", valeur: 0 },
     tvaTaux: 20,
