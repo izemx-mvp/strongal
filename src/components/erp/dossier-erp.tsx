@@ -38,11 +38,10 @@ function useCommercialDraft(dossier: Dossier) {
   const { config, updateDossier, utilisateur } = useStore();
   const saved = getCommercial(dossier, config);
   const [draft, setDraft] = useState<Commercial>(saved);
-  const savedJson = JSON.stringify(dossier.commercial ?? null);
+  const savedJson = JSON.stringify(saved);
   useEffect(() => {
-    setDraft(getCommercial(dossier, config));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dossier.ref, savedJson]);
+    setDraft(JSON.parse(savedJson));
+  }, [savedJson]);
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
   const save = (extra: Partial<Dossier> = {}, extraHisto: { label: string; action: string; avant?: string; apres?: string }[] = []) => {
     const diffs = diffCommercial(saved, draft);
