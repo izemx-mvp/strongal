@@ -17,7 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ficheTechnique, fmt, fmtNum } from "@/lib/calc";
 import { CHECKLIST_ITEMS, type Dossier } from "@/lib/data";
-import { nowStr, useStore } from "@/lib/store";
+import { nowStr } from "@/lib/erp";
+import { useStore } from "@/lib/store";
 
 export const TYPES_DOSSIER = ["Résidentiel", "Villa", "Commercial", "Promotion"] as const;
 export const GAMMES_DOSSIER = ["Standard", "Haut de gamme"] as const;

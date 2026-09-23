@@ -65,15 +65,6 @@ export type Produit = {
   composants: ComposantProduit[];
 };
 
-export type Qualification = {
-  budgetMin: number;
-  zones: string[];
-  typesProjets: string[];
-  delaiReponse: number;
-  infosRequises: string[];
-  scoreMin: number;
-};
-
 export type Config = {
   profiles: Profile[];
   vitrages: Vitrage[];
@@ -91,7 +82,6 @@ export type Config = {
   margeHautDeGamme: number;
   arrondi: "cm" | "mm";
   validated: boolean;
-  qualification: Qualification;
 };
 
 export type Repere = {
@@ -134,6 +124,7 @@ export type StatutDossier =
   | "À valider"
   | "Validé"
   | "Devis envoyé"
+  | "Devis accepté"
   | "Livré";
 
 export type Dossier = {
@@ -147,7 +138,7 @@ export type Dossier = {
   dateCollecte: string;
   date: string;
   statut: StatutDossier;
-  etape: number; // 0..4
+  etape: number; // 0..9 — cycle opérationnel complet
   reperes: Repere[];
   notes: string;
   checklist: Record<string, boolean>;
@@ -160,61 +151,6 @@ export type Dossier = {
   suivi?: import("./erp").Suivi;
   relances?: import("./erp").RelanceEnvoyee[];
   demandesClient?: import("./erp").DemandeClient[];
-};
-
-export type StatutProspect =
-  | "Qualifié IA"
-  | "Non qualifié IA"
-  | "Informations incomplètes"
-  | "Contacté"
-  | "Devis envoyé"
-  | "En négociation"
-  | "Client signé"
-  | "Perdu";
-
-export type Prospect = {
-  id: string;
-  nom: string;
-  contact: string;
-  source: "WhatsApp" | "Email" | "Site web" | "Téléphone";
-  besoin: string;
-  budget: number;
-  typeProjet: string;
-  zone: string;
-  statut: StatutProspect;
-  statutIA: StatutProspect;
-  justification: string;
-  score: number;
-  date: string;
-  notes: string;
-  corrigeManuellement?: boolean;
-  historique: HistoEntry[];
-};
-
-export type Faq = {
-  id: string;
-  question: string;
-  reponse: string;
-  categorie: "Produits" | "Délais" | "Paiement" | "SAV";
-  actif: boolean;
-};
-
-export type DocItem = {
-  id: string;
-  nom: string;
-  type: string;
-  taille: string;
-  date: string;
-};
-
-export type Horaire = { jour: string; ouvert: boolean; debut: string; fin: string };
-
-export type InfosPratiques = {
-  reseaux: { id: string; nom: string; url: string; actif: boolean }[];
-  adresse: string;
-  telephone: string;
-  email: string;
-  horaires: Horaire[];
 };
 
 /* ------------------------------ Config par défaut ------------------------------ */
@@ -461,14 +397,6 @@ export const defaultConfig: Config = {
   margeHautDeGamme: 28,
   arrondi: "cm",
   validated: false,
-  qualification: {
-    budgetMin: 25000,
-    zones: ["Casablanca", "Mohammedia", "Bouskoura", "Dar Bouazza", "Rabat", "Marrakech"],
-    typesProjets: ["Résidentiel standard", "Villa haut de gamme", "Commercial"],
-    delaiReponse: 4,
-    infosRequises: ["Dimensions approximatives connues", "Budget évoqué", "Zone confirmée"],
-    scoreMin: 60,
-  },
 };
 
 export const CHECKLIST_ITEMS = [
@@ -500,188 +428,119 @@ type Seed = [
   string,
   string,
   string[],
+  number,
 ];
 
 const seeds: Seed[] = [
   [
-    "M. Karim Benjelloun",
+    "Villa Alia — Famille Bennani",
     "Villa",
     "Haut de gamme",
-    "À valider",
-    "Villa Anfa Supérieur, Casablanca",
+    "Devis accepté",
+    "Lot 14, Bouskoura Green Town",
     "o1",
     "p2",
-    ["Baie coulissante salon 4 vantaux", "Baie coulissante suite parentale"],
+    ["Baie à levage séjour 4 vantaux", "Baie suite parentale", "Châssis cuisine oscillo-battant"],
+    5,
   ],
   [
-    "Groupe Palmeraie Développement",
+    "Résidence Les Terrasses d'Anfa",
     "Promotion",
     "Standard",
-    "Chiffrage en cours",
-    "Résidence Palmeraie, Bouskoura",
+    "Devis accepté",
+    "Boulevard Sidi Abderrahmane, Casablanca",
     "o1",
     "p1",
-    ["Baies séjour type A", "Fenêtres chambres type A"],
+    ["Baies séjour type T3 — tranche A", "Fenêtres chambres type F2", "Portes-fenêtres terrasses"],
+    4,
   ],
   [
-    "Sté Marocaine d'Industrie Légère",
+    "Siège Novatech Industries",
     "Commercial",
     "Haut de gamme",
-    "Validé",
-    "Zone industrielle Ain Sebaâ, Casablanca",
+    "Devis accepté",
+    "Parc industriel Sapino, Nouaceur",
     "o2",
     "p4",
-    ["Mur rideau façade principale", "Mur rideau retour Est"],
+    ["Mur rideau façade principale", "Mur rideau patio", "Portes aluminium hall"],
+    6,
   ],
   [
-    "Mme Salma Bennani",
+    "Clinique Horizon Santé",
+    "Commercial",
+    "Haut de gamme",
+    "Devis accepté",
+    "Quartier Oasis, Casablanca",
+    "o1",
+    "p3",
+    ["Châssis chambres patients", "Ensemble vitré accueil", "Portes de service"],
+    7,
+  ],
+  [
+    "Villa Riad — M. Amine Idrissi",
+    "Villa",
+    "Haut de gamme",
+    "Devis accepté",
+    "Route de l'Ourika, Marrakech",
+    "o3",
+    "p5",
+    ["Pergola bioclimatique terrasse", "Fermeture latérale vitrée"],
+    8,
+  ],
+  [
+    "Atelier Atlas Mobilité",
+    "Commercial",
+    "Standard",
+    "À valider",
+    "Zone industrielle Aïn Sebaâ, Casablanca",
+    "o8",
+    "p8",
+    ["Habillage façade bureaux", "Châssis fixes atelier"],
+    2,
+  ],
+  [
+    "Mme Laila El Mansouri",
     "Résidentiel",
     "Standard",
-    "Devis envoyé",
-    "Racine, Casablanca",
+    "Chiffrage en cours",
+    "Quartier CIL, Casablanca",
     "o1",
     "p1",
-    ["Baie coulissante terrasse", "Fenêtre cuisine"],
+    ["Baie coulissante salon", "Fenêtre cuisine", "Fenêtres chambres"],
+    1,
   ],
   [
-    "M. Youssef El Amrani",
+    "Villa Océan — M. Adil Tazi",
     "Villa",
     "Haut de gamme",
     "Collecte terrain",
-    "Dar Bouazza",
-    "o3",
+    "Plage des Nations, Bouknadel",
+    "o7",
     "p5",
-    ["Pergola bioclimatique piscine"],
+    ["Garde-corps vitré terrasse", "Baie à levage séjour"],
+    0,
   ],
   [
-    "Résidence Al Manar Promotion",
+    "Résidence Yasmine — Lot menuiserie",
     "Promotion",
     "Standard",
-    "Nouveau",
+    "Devis envoyé",
     "Sidi Maârouf, Casablanca",
     "o1",
     "p1",
-    ["Baies type B x 12", "Garde-corps balcons"],
+    ["Baies type B — bâtiment 1", "Fenêtres type F1", "Portes-fenêtres balcons"],
+    3,
   ],
   [
-    "M. Rachid Tazi",
-    "Villa",
-    "Haut de gamme",
-    "Livré",
-    "Californie, Casablanca",
-    "o5",
-    "p7",
-    ["Portail coulissant motorisé", "Portillon assorti"],
-  ],
-  [
-    "Clinique Atlas Santé",
+    "Showroom Mobilia Design",
     "Commercial",
     "Standard",
-    "À valider",
-    "Maârif, Casablanca",
-    "o1",
-    "p3",
-    ["Fenêtres chambres étage 1", "Châssis fixes couloir"],
-  ],
-  [
-    "Mme Nadia Cherkaoui",
-    "Résidentiel",
-    "Standard",
-    "Chiffrage en cours",
-    "Ain Diab, Casablanca",
-    "o6",
-    "p6",
-    ["Brise-soleil façade Sud"],
-  ],
-  [
-    "M. Hamza Fassi",
-    "Villa",
-    "Haut de gamme",
-    "Validé",
-    "Bouskoura Golf City",
-    "o4",
-    "p3",
-    ["Verrière patio", "Baie coulissante séjour"],
-  ],
-  [
-    "Groupe Anfa Realties",
-    "Promotion",
-    "Haut de gamme",
-    "À valider",
-    "Casa Anfa, Casablanca",
+    "Livré",
+    "Boulevard Al Massira, Casablanca",
     "o2",
     "p4",
-    ["Mur rideau lot 3", "Habillage aluminium entrée"],
-  ],
-  [
-    "M. Omar Lahlou",
-    "Résidentiel",
-    "Standard",
-    "Devis envoyé",
-    "Oasis, Casablanca",
-    "o1",
-    "p1",
-    ["Baie coulissante salon"],
-  ],
-  [
-    "Hôtel Riad Atlantique",
-    "Commercial",
-    "Haut de gamme",
-    "Chiffrage en cours",
-    "Corniche, Casablanca",
-    "o1",
-    "p2",
-    ["Baies chambres front de mer", "Garde-corps terrasses"],
-  ],
-  [
-    "Mme Imane Sekkat",
-    "Résidentiel",
-    "Standard",
-    "Nouveau",
-    "CIL, Casablanca",
-    "o7",
-    "p8",
-    ["Garde-corps escalier"],
-  ],
-  [
-    "M. Adil Berrada",
-    "Villa",
-    "Haut de gamme",
-    "Collecte terrain",
-    "Mohammedia",
-    "o3",
-    "p5",
-    ["Pergola bioclimatique terrasse", "Habillage poteaux"],
-  ],
-  [
-    "Société Logistique Zenata",
-    "Commercial",
-    "Standard",
-    "Livré",
-    "Zenata, Casablanca",
-    "o8",
-    "p8",
-    ["Habillage façade bureaux"],
-  ],
-  [
-    "M. Mehdi Alaoui",
-    "Villa",
-    "Haut de gamme",
-    "À valider",
-    "Marrakech Route de l'Ourika",
-    "o1",
-    "p2",
-    ["Grande baie salon 5 m", "Baie suite invités"],
-  ],
-  [
-    "Résidence Les Jardins d'Anfa",
-    "Promotion",
-    "Standard",
-    "Chiffrage en cours",
-    "Anfa Supérieur, Casablanca",
-    "o1",
-    "p1",
-    ["Baies type C x 20", "Brise-soleil façade Ouest"],
+    ["Façade vitrée showroom", "Porte d'entrée aluminium"],
+    9,
   ],
 ];
 
@@ -692,6 +551,7 @@ const statutEtape: Record<StatutDossier, number> = {
   "À valider": 2,
   Validé: 3,
   "Devis envoyé": 3,
+  "Devis accepté": 4,
   Livré: 4,
 };
 
@@ -702,8 +562,8 @@ function dateStr(daysAgo: number) {
 }
 
 export const initialDossiers: Dossier[] = seeds.map((s, i) => {
-  const [client, typeProjet, gamme, statut, adresse, ouvrageId, profileId, designations] = s;
-  const n = String(i + 1).padStart(3, "0");
+  const [client, typeProjet, gamme, statut, adresse, ouvrageId, profileId, designations, cycleEtape] = s;
+  const n = String(i === seeds.length - 1 ? 18 : i + 1).padStart(3, "0");
   const ref = `STR-2026-${n}`;
   const reperes: Repere[] = designations.map((designation, j) => {
     const big = i === 0 || i === 10 || i === 16;
@@ -733,7 +593,7 @@ export const initialDossiers: Dossier[] = seeds.map((s, i) => {
       contraintes: [contraintesPool[(i + j) % contraintesPool.length]],
     };
   });
-  const etape = statutEtape[statut];
+  const etape = cycleEtape ?? statutEtape[statut];
   const historique: HistoEntry[] = [
     { date: dateStr(30 - i), auteur: "Système", label: "Dossier créé" },
     { date: dateStr(28 - i), auteur: "Agent Collecte", label: "Collecte terrain enregistrée" },
@@ -757,7 +617,7 @@ export const initialDossiers: Dossier[] = seeds.map((s, i) => {
             version: 1,
             date: dateStr(14 - i),
             total: 0,
-            statut: statut === "Livré" ? "Accepté" : "Envoyé",
+            statut: statut === "Livré" || statut === "Devis accepté" ? "Accepté" : "Envoyé",
           },
         ]
       : [];
@@ -786,352 +646,6 @@ export const initialDossiers: Dossier[] = seeds.map((s, i) => {
     ],
   };
 });
-
-/* ------------------------------ Prospects mockés ------------------------------ */
-
-const prospectSeeds: [
-  string,
-  Prospect["source"],
-  string,
-  number,
-  string,
-  string,
-  StatutProspect,
-  string,
-  number,
-][] = [
-  [
-    "Yassine Moutaouakil",
-    "WhatsApp",
-    "Bonjour, je cherche une baie vitrée coulissante de 4m pour mon salon, budget autour de 45 000 MAD, idéalement avant fin d'année.",
-    45000,
-    "Résidentiel standard",
-    "Casablanca",
-    "Qualifié IA",
-    "Budget compatible avec le seuil minimum, zone couverte (Casablanca), projet résidentiel standard.",
-    82,
-  ],
-  [
-    "Leila Bouhaddou",
-    "Email",
-    "Nous rénovons une villa à Dar Bouazza : 8 fenêtres et une grande baie. Merci de me rappeler pour une visite technique.",
-    180000,
-    "Villa haut de gamme",
-    "Dar Bouazza",
-    "Qualifié IA",
-    "Volume important, zone couverte, projet villa haut de gamme correspondant au cœur de cible.",
-    91,
-  ],
-  [
-    "Hicham Naciri",
-    "Site web",
-    "Prix d'une fenêtre alu 1m x 1m svp ?",
-    3000,
-    "Résidentiel standard",
-    "Casablanca",
-    "Non qualifié IA",
-    "Budget très inférieur au seuil minimum de 25 000 MAD, demande unitaire non rentable.",
-    24,
-  ],
-  [
-    "Groupe Chaabi Immobilier",
-    "Email",
-    "Consultation pour menuiserie aluminium sur 46 appartements, livraison T3. Merci d'envoyer vos références.",
-    2400000,
-    "Promotion immobilière",
-    "Casablanca",
-    "Qualifié IA",
-    "Promoteur avec volume élevé, zone couverte, délai réaliste.",
-    95,
-  ],
-  [
-    "Sanaa El Khatib",
-    "WhatsApp",
-    "Bonjour, je voudrais une pergola pour ma terrasse.",
-    0,
-    "Résidentiel standard",
-    "Non précisée",
-    "Informations incomplètes",
-    "Budget non évoqué et zone non confirmée : informations minimales requises manquantes.",
-    38,
-  ],
-  [
-    "Mounir Tahiri",
-    "Téléphone",
-    "Je veux un portail coulissant motorisé pour ma villa à Bouskoura, budget 70 000 MAD environ.",
-    70000,
-    "Villa haut de gamme",
-    "Bouskoura",
-    "Contacté",
-    "Budget et zone conformes, projet villa haut de gamme.",
-    88,
-  ],
-  [
-    "Fatima Zahra Idrissi",
-    "WhatsApp",
-    "Bonjour, mur rideau pour un immeuble de bureaux au Maârif, environ 300 m² de façade.",
-    900000,
-    "Commercial",
-    "Casablanca",
-    "Devis envoyé",
-    "Projet commercial de grande surface, parfaitement dans le cœur de métier.",
-    93,
-  ],
-  [
-    "Anas Skalli",
-    "Email",
-    "Besoin d'un garde-corps en verre pour un duplex, 18 ml. Budget 55 000 MAD.",
-    55000,
-    "Résidentiel standard",
-    "Casablanca",
-    "En négociation",
-    "Budget conforme, zone couverte, produit standard du catalogue.",
-    79,
-  ],
-  [
-    "Villa Anfa Résidence",
-    "Site web",
-    "Nous souhaitons un devis pour les baies coulissantes de 6 villas témoins.",
-    1100000,
-    "Promotion immobilière",
-    "Casablanca",
-    "Client signé",
-    "Client promoteur récurrent, volume élevé et délai compatible.",
-    96,
-  ],
-  [
-    "Khalid Ouhadi",
-    "Téléphone",
-    "Je cherche quelqu'un pour réparer une roulette de baie coulissante.",
-    800,
-    "Résidentiel standard",
-    "Casablanca",
-    "Non qualifié IA",
-    "Demande de SAV ponctuel hors périmètre de fabrication sur mesure.",
-    12,
-  ],
-  [
-    "Meriem Lamrani",
-    "WhatsApp",
-    "Nous construisons une villa à Marrakech, besoin de menuiserie alu complète, budget 350 000 MAD.",
-    350000,
-    "Villa haut de gamme",
-    "Marrakech",
-    "Qualifié IA",
-    "Budget élevé, zone couverte, projet complet villa haut de gamme.",
-    90,
-  ],
-  [
-    "Société Agro Maghreb",
-    "Email",
-    "Remplacement des châssis de notre siège social, 42 unités, avant juin.",
-    620000,
-    "Commercial",
-    "Mohammedia",
-    "Contacté",
-    "Volume conforme, zone couverte, délai réaliste.",
-    86,
-  ],
-  [
-    "Samir Belhaj",
-    "Site web",
-    "Verrière d'atelier pour un patio, dimensions approximatives 3m x 4m, budget non fixé.",
-    0,
-    "Résidentiel standard",
-    "Rabat",
-    "Informations incomplètes",
-    "Dimensions connues mais budget non évoqué : lead à requalifier par téléphone.",
-    51,
-  ],
-  [
-    "Nawal Saadi",
-    "WhatsApp",
-    "Brise-soleil pour façade sud d'une maison à Ain Diab, environ 30 m².",
-    120000,
-    "Villa haut de gamme",
-    "Casablanca",
-    "Perdu",
-    "Projet qualifié mais client parti chez un concurrent sur le délai.",
-    74,
-  ],
-  [
-    "Reda Chraibi",
-    "Email",
-    "Bonjour, extension véranda aluminium 25 m² à Mohammedia, budget 160 000 MAD, démarrage sous 2 mois.",
-    160000,
-    "Villa haut de gamme",
-    "Mohammedia",
-    "Qualifié IA",
-    "Budget conforme, zone couverte, délai compatible avec la charge atelier.",
-    87,
-  ],
-];
-
-export const initialProspects: Prospect[] = prospectSeeds.map((p, i) => {
-  const [nom, source, besoin, budget, typeProjet, zone, statut, justification, score] = p;
-  const iaStatut: StatutProspect = ["Qualifié IA", "Non qualifié IA", "Informations incomplètes"].includes(
-    statut,
-  )
-    ? statut
-    : statut === "Perdu" || statut === "Client signé" || statut === "En négociation"
-      ? "Qualifié IA"
-      : "Qualifié IA";
-  return {
-    id: `PRS-${String(i + 1).padStart(3, "0")}`,
-    nom,
-    contact: i % 2 === 0 ? `+212 6${String(20000000 + i * 913377).slice(0, 8)}` : `contact${i + 1}@mail.ma`,
-    source,
-    besoin,
-    budget,
-    typeProjet,
-    zone,
-    statut,
-    statutIA: iaStatut,
-    justification,
-    score,
-    date: dateStr(20 - i),
-    notes: "",
-    historique: [
-      {
-        date: dateStr(20 - i),
-        auteur: "Agent Qualification (IA)",
-        label: `Prospect capté via ${source} — statut initial : ${iaStatut}`,
-      },
-      ...(iaStatut !== statut
-        ? [{ date: dateStr(18 - i), auteur: "M. Aboulssaad", label: `Statut passé à « ${statut} »` }]
-        : []),
-    ],
-  };
-});
-
-/* ------------------------------ Service client ------------------------------ */
-
-export const initialFaq: Faq[] = [
-  {
-    id: "f1",
-    question: "Proposez-vous un devis en ligne ?",
-    reponse:
-      "Chaque solution Strongal est technique et sur mesure : dimensions, type de vitrage et contraintes du chantier changent tout. Nous réalisons donc un relevé puis un devis technique détaillé après un échange direct.",
-    categorie: "Produits",
-    actif: true,
-  },
-  {
-    id: "f2",
-    question: "Quels sont vos délais de fabrication ?",
-    reponse:
-      "Comptez 21 à 35 jours pour une baie coulissante ou une pergola, et 45 à 60 jours pour un mur rideau, à partir de la validation du devis technique.",
-    categorie: "Délais",
-    actif: true,
-  },
-  {
-    id: "f3",
-    question: "Intervenez-vous en dehors de Casablanca ?",
-    reponse:
-      "Oui. Nous intervenons sur Casablanca, Mohammedia, Bouskoura, Dar Bouazza, Rabat et Marrakech. Au-delà, un forfait de déplacement s'applique.",
-    categorie: "Produits",
-    actif: true,
-  },
-  {
-    id: "f4",
-    question: "Proposez-vous une garantie ?",
-    reponse:
-      "Oui : 10 ans sur les profilés et le laquage, 2 ans sur les accessoires et quincailleries, et 1 an sur la pose.",
-    categorie: "SAV",
-    actif: true,
-  },
-  {
-    id: "f5",
-    question: "Quels sont vos modes de paiement ?",
-    reponse:
-      "40 % à la commande, 40 % au lancement de la fabrication et 20 % à la réception du chantier. Virement, chèque ou effet.",
-    categorie: "Paiement",
-    actif: true,
-  },
-  {
-    id: "f6",
-    question: "Travaillez-vous avec quelles séries de profilés ?",
-    reponse:
-      "Nous travaillons principalement avec Schüco, Technal, Sepalumic et Aluminium du Maroc, en finition anodisée ou laquée RAL.",
-    categorie: "Produits",
-    actif: true,
-  },
-  {
-    id: "f7",
-    question: "Faites-vous la dépose de l'ancienne menuiserie ?",
-    reponse:
-      "Oui, la dépose et l'évacuation des anciens châssis peuvent être intégrées au devis, sur demande.",
-    categorie: "Produits",
-    actif: true,
-  },
-  {
-    id: "f8",
-    question: "Quel est le délai d'intervention en SAV ?",
-    reponse:
-      "Une intervention SAV est planifiée sous 72 heures ouvrées sur Casablanca et sous 5 jours sur les autres zones.",
-    categorie: "SAV",
-    actif: true,
-  },
-  {
-    id: "f9",
-    question: "Quel est le budget moyen d'une baie coulissante ?",
-    reponse:
-      "Une baie coulissante deux vantaux en double vitrage démarre autour de 3 500 MAD/m² posé, selon la série et la finition.",
-    categorie: "Paiement",
-    actif: true,
-  },
-  {
-    id: "f10",
-    question: "Pouvez-vous respecter un délai serré ?",
-    reponse:
-      "Nous pouvons prioriser un chantier en fonction de la charge atelier. Indiquez-nous votre date cible et nous confirmons sous 4 heures.",
-    categorie: "Délais",
-    actif: true,
-  },
-  {
-    id: "f11",
-    question: "Réalisez-vous des pergolas bioclimatiques motorisées ?",
-    reponse:
-      "Oui, en lames orientables motorisées avec capteur de pluie en option, jusqu'à 6 m de portée sans poteau intermédiaire.",
-    categorie: "Produits",
-    actif: true,
-  },
-  {
-    id: "f12",
-    question: "Puis-je visiter des réalisations ?",
-    reponse:
-      "Nous partageons un book de réalisations et, sur accord des clients, une visite de chantier peut être organisée à Casablanca.",
-    categorie: "Produits",
-    actif: false,
-  },
-];
-
-export const initialDocuments: DocItem[] = [
-  { id: "d1", nom: "Catalogue produits Strongal 2026.pdf", type: "pdf", taille: "8.4 Mo", date: "2026-01-12" },
-  { id: "d2", nom: "Fiche technique STR-CL-70.pdf", type: "pdf", taille: "1.2 Mo", date: "2026-02-03" },
-  { id: "d3", nom: "Fiche technique mur rideau FW 50+.pdf", type: "pdf", taille: "2.1 Mo", date: "2026-02-18" },
-  { id: "d4", nom: "Book de réalisations villas.pdf", type: "pdf", taille: "14.6 Mo", date: "2026-03-05" },
-  { id: "d5", nom: "Nuancier RAL & anodisations.jpg", type: "image", taille: "3.3 Mo", date: "2026-03-22" },
-];
-
-export const initialInfos: InfosPratiques = {
-  reseaux: [
-    { id: "r1", nom: "Instagram", url: "https://instagram.com/strongal.ma", actif: true },
-    { id: "r2", nom: "Facebook", url: "https://facebook.com/strongal.ma", actif: true },
-    { id: "r3", nom: "LinkedIn", url: "https://linkedin.com/company/strongal", actif: false },
-  ],
-  adresse: "Zone industrielle Ain Sebaâ, Casablanca, Maroc",
-  telephone: "+212 669-910658",
-  email: "contact@strongal.ma",
-  horaires: [
-    { jour: "Lundi", ouvert: true, debut: "08:30", fin: "18:30" },
-    { jour: "Mardi", ouvert: true, debut: "08:30", fin: "18:30" },
-    { jour: "Mercredi", ouvert: true, debut: "08:30", fin: "18:30" },
-    { jour: "Jeudi", ouvert: true, debut: "08:30", fin: "18:30" },
-    { jour: "Vendredi", ouvert: true, debut: "08:30", fin: "18:30" },
-    { jour: "Samedi", ouvert: true, debut: "09:00", fin: "13:00" },
-    { jour: "Dimanche", ouvert: false, debut: "—", fin: "—" },
-  ],
-};
 
 export const LOGO_URL =
   "https://strongal.ma/wp-content/uploads/2025/11/Black-Monoline-Real-Estate-Logo-copie.png";

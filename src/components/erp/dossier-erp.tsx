@@ -203,7 +203,10 @@ export function DossierDevis({ dossier }: { dossier: Dossier }) {
   const setStatut = (d: DevisVersion, s: DevisVersion["statut"]) =>
     updateDossier(
       dossier.ref,
-      { devis: dossier.devis.map((x) => (x.version === d.version ? { ...x, statut: s } : x)) },
+      {
+        devis: dossier.devis.map((x) => (x.version === d.version ? { ...x, statut: s } : x)),
+        ...(s === "Accepté" ? { statut: "Devis accepté" as const } : {}),
+      },
       { auteur: utilisateur, action: "Statut devis", label: `Devis v${d.version} — ${s}`, avant: d.statut, apres: s },
     );
 

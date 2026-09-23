@@ -9,6 +9,7 @@ import {
 import {
   defaultRelanceConfig,
   defaultTemplates,
+  nowStr,
   type Facture,
   type RelanceConfig,
   type RelanceTemplate,
@@ -41,11 +42,9 @@ type Store = {
   markNotificationsRead: () => void;
 };
 
-const STORAGE_KEY = "strongal-erp-v1";
+const STORAGE_KEY = "strongal-erp-v2";
 
 const StoreContext = createContext<Store | null>(null);
-
-export const nowStr = () => new Date().toISOString().slice(0, 16).replace("T", " ");
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<Config>(defaultConfig);
@@ -97,13 +96,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: "n1",
-      label: "Agent Chiffrage a calculé les matières premières du dossier STR-2026-014",
+      label: "Fabrication portée à 65 % sur le siège Novatech Industries",
       time: "il y a 12 min",
       lu: false,
     },
     {
       id: "n2",
-      label: "Fabrication démarrée sur STR-2026-004 — Mohamed",
+      label: "Livraison confirmée pour la Clinique Horizon Santé",
       time: "il y a 40 min",
       lu: false,
     },
@@ -115,19 +114,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     {
       id: "n4",
-      label: "Zone d'équilibrage détectée sur STR-2026-011, validation humaine requise",
+      label: "Validation humaine requise sur le dossier Atelier Atlas Mobilité",
       time: "il y a 3 h",
       lu: false,
     },
     {
       id: "n5",
-      label: "Devis technique v1 envoyé au client Mme Salma Bennani",
+      label: "Devis technique envoyé pour la Résidence Yasmine",
       time: "il y a 5 h",
       lu: true,
     },
     {
       id: "n6",
-      label: "Agent Chiffrage : taux de chute optimisé à 8,4 % sur STR-2026-003",
+      label: "Réception finale enregistrée pour le showroom Mobilia Design",
       time: "hier",
       lu: true,
     },

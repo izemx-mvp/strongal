@@ -23,6 +23,7 @@ const STATUTS: StatutDossier[] = [
   "À valider",
   "Validé",
   "Devis envoyé",
+  "Devis accepté",
   "Livré",
 ];
 const TYPES = ["Résidentiel", "Villa", "Commercial", "Promotion"] as const;
