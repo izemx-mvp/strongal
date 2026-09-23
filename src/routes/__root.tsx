@@ -84,13 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Backoffice Strongal : chiffrage aluminium assisté par IA, pilotage des prospects et agent service client.",
+          "Backoffice Strongal : chiffrage aluminium assisté par IA, suivi chantier, relances et facturation.",
       },
       { name: "author", content: "Strongal" },
       { property: "og:title", content: "Strongal Control — Backoffice" },
       {
         property: "og:description",
-        content: "Pilotez vos chiffrages, vos prospects et votre service client.",
+        content: "Pilotez vos chiffrages, vos chantiers et votre facturation.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

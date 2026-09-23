@@ -5,9 +5,10 @@ import {
   Bot,
   CheckCircle2,
   FolderKanban,
-  MessagesSquare,
+  BellRing,
+  HardHat,
+  Receipt,
   Scissors,
-  UserCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -17,6 +18,7 @@ import { CountUp, PageTransition, ShimmerBlock } from "@/components/motion-bits"
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { computeTotaux } from "@/lib/calc";
+import { calcCommercial, getSuivi, phaseCourante, planRelances, statutFactureEffectif } from "@/lib/erp";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/dashboard")({
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/dashboard")({
       { title: "Tableau de bord — Strongal Control" },
       {
         name: "description",
-        content: "Vue d'ensemble des dossiers, chiffrages, prospects et agents IA de Strongal.",
+        content: "Vue d'ensemble des dossiers, chiffrages, chantiers, relances et factures de Strongal.",
       },
       { property: "og:title", content: "Tableau de bord — Strongal Control" },
       {
@@ -39,16 +41,14 @@ export const Route = createFileRoute("/dashboard")({
 
 const ACTIVITES = [
   { t: "il y a 12 min", l: "Agent Chiffrage a calculé les matières premières du dossier STR-2026-014" },
-  { t: "il y a 40 min", l: "Agent Service Client a répondu à 3 questions via WhatsApp" },
-  { t: "il y a 2 h", l: "Agent Qualification a qualifié un nouveau prospect (Reda Chraibi)" },
+  { t: "il y a 40 min", l: "Fabrication démarrée sur STR-2026-004 — Mohamed" },
   { t: "il y a 3 h", l: "Zone d'équilibrage détectée sur STR-2026-011, validation humaine requise" },
   { t: "il y a 5 h", l: "Devis technique v1 envoyé à Mme Salma Bennani (STR-2026-004)" },
   { t: "hier", l: "Agent Chiffrage : taux de chute optimisé à 8,4 % sur STR-2026-003" },
-  { t: "hier", l: "Agent Service Client a partagé le catalogue produits à 2 prospects" },
 ];
 
 function Dashboard() {
-  const { dossiers, prospects, config } = useStore();
+  const { dossiers, config, factures, relanceConfig } = useStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +59,16 @@ function Dashboard() {
 
   const enCours = dossiers.filter((d) => d.statut !== "Livré").length;
   const aValider = dossiers.filter((d) => d.statut === "À valider").length;
-  const qualifies = prospects.filter((p) => p.statutIA === "Qualifié IA").length;
+  const chantiers = dossiers.filter((d) => {
+    const p = phaseCourante(getSuivi(d));
+    return ["fabrication", "livraison", "prepa", "pose"].includes(p.id) && p.etat !== "À venir";
+  }).length;
+  const relancesDues = dossiers
+    .flatMap((d) => planRelances(d, relanceConfig))
+    .filter((r) => r.statut === "Due").length;
+  const aEncaisser = factures
+    .filter((f) => ["Générée", "Envoyée", "En retard"].includes(statutFactureEffectif(f)))
+    .reduce((s, f) => s + calcCommercial(f.commercial).totalTTC, 0);
   const chute = useMemo(() => {
     const vals = dossiers.map((d) => computeTotaux(d, config).tauxChuteGlobal);
     return vals.reduce((s, v) => s + v, 0) / (vals.length || 1);
@@ -74,15 +83,10 @@ function Dashboard() {
       to: "/dossiers",
       search: { statut: "À valider" },
     },
-    { label: "Prospects qualifiés ce mois-ci", value: qualifies, icon: UserCheck, to: "/prospects", search: {} },
+    { label: "Chantiers en fabrication, livraison ou pose", value: chantiers, icon: HardHat, to: "/dossiers", search: {} },
     { label: "Taux de chute moyen sur débitage", value: chute, icon: Scissors, to: "/dossiers", search: {}, suffix: " %", decimals: 1 },
-    {
-      label: "Questions traitées par l'agent service client",
-      value: 348,
-      icon: MessagesSquare,
-      to: "/service-client",
-      search: {},
-    },
+    { label: "Relances à envoyer (manuellement)", value: relancesDues, icon: BellRing, to: "/relances", search: {} },
+    { label: "Factures à encaisser (MAD TTC)", value: aEncaisser, icon: Receipt, to: "/factures", search: {} },
   ] as const;
 
   const chart = useMemo(
@@ -101,7 +105,7 @@ function Dashboard() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Tableau de bord</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Vue d'ensemble de l'activité Strongal et de vos agents IA.
+            Vue d'ensemble : chiffrage, chantiers, relances et facturation.
           </p>
         </div>
 
@@ -122,7 +126,7 @@ function Dashboard() {
           </motion.div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
           {kpis.map((k, i) =>
             loading ? (
               <ShimmerBlock key={k.label} className="h-32" />
@@ -174,7 +178,7 @@ function Dashboard() {
 
           <Card className="glass glass-hover p-5">
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-              <Bot className="h-5 w-5 text-warm" /> Activité récente des agents IA
+              <Bot className="h-5 w-5 text-warm" /> Activité récente
             </h2>
             <div className="scroll-slim max-h-72 space-y-4 overflow-y-auto pr-2">
               {loading
