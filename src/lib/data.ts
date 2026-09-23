@@ -65,15 +65,6 @@ export type Produit = {
   composants: ComposantProduit[];
 };
 
-export type Qualification = {
-  budgetMin: number;
-  zones: string[];
-  typesProjets: string[];
-  delaiReponse: number;
-  infosRequises: string[];
-  scoreMin: number;
-};
-
 export type Config = {
   profiles: Profile[];
   vitrages: Vitrage[];
@@ -91,7 +82,6 @@ export type Config = {
   margeHautDeGamme: number;
   arrondi: "cm" | "mm";
   validated: boolean;
-  qualification: Qualification;
 };
 
 export type Repere = {
@@ -161,61 +151,6 @@ export type Dossier = {
   suivi?: import("./erp").Suivi;
   relances?: import("./erp").RelanceEnvoyee[];
   demandesClient?: import("./erp").DemandeClient[];
-};
-
-export type StatutProspect =
-  | "Qualifié IA"
-  | "Non qualifié IA"
-  | "Informations incomplètes"
-  | "Contacté"
-  | "Devis envoyé"
-  | "En négociation"
-  | "Client signé"
-  | "Perdu";
-
-export type Prospect = {
-  id: string;
-  nom: string;
-  contact: string;
-  source: "WhatsApp" | "Email" | "Site web" | "Téléphone";
-  besoin: string;
-  budget: number;
-  typeProjet: string;
-  zone: string;
-  statut: StatutProspect;
-  statutIA: StatutProspect;
-  justification: string;
-  score: number;
-  date: string;
-  notes: string;
-  corrigeManuellement?: boolean;
-  historique: HistoEntry[];
-};
-
-export type Faq = {
-  id: string;
-  question: string;
-  reponse: string;
-  categorie: "Produits" | "Délais" | "Paiement" | "SAV";
-  actif: boolean;
-};
-
-export type DocItem = {
-  id: string;
-  nom: string;
-  type: string;
-  taille: string;
-  date: string;
-};
-
-export type Horaire = { jour: string; ouvert: boolean; debut: string; fin: string };
-
-export type InfosPratiques = {
-  reseaux: { id: string; nom: string; url: string; actif: boolean }[];
-  adresse: string;
-  telephone: string;
-  email: string;
-  horaires: Horaire[];
 };
 
 /* ------------------------------ Config par défaut ------------------------------ */
@@ -462,14 +397,6 @@ export const defaultConfig: Config = {
   margeHautDeGamme: 28,
   arrondi: "cm",
   validated: false,
-  qualification: {
-    budgetMin: 25000,
-    zones: ["Casablanca", "Mohammedia", "Bouskoura", "Dar Bouazza", "Rabat", "Marrakech"],
-    typesProjets: ["Résidentiel standard", "Villa haut de gamme", "Commercial"],
-    delaiReponse: 4,
-    infosRequises: ["Dimensions approximatives connues", "Budget évoqué", "Zone confirmée"],
-    scoreMin: 60,
-  },
 };
 
 export const CHECKLIST_ITEMS = [
