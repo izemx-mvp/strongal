@@ -22,7 +22,6 @@ import {
   DossierFactures,
   DossierOverview,
 } from "@/components/erp/dossier-erp";
-import { RelancesDossier } from "@/components/erp/relances";
 import { SuiviChantier } from "@/components/erp/suivi-chantier";
 import { StatutBadge } from "@/components/badges";
 import { PageTransition, ShimmerBlock } from "@/components/motion-bits";
@@ -245,7 +244,7 @@ function DossierDetail() {
           <p className="mb-4 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
             Statut administratif / commercial du dossier
           </p>
-          <div className="relative flex justify-between gap-2">
+           <div className="scroll-slim relative flex justify-between gap-2 overflow-x-auto pb-2">
             <div className="absolute top-4 right-4 left-4 h-1 rounded-full bg-muted" />
             <motion.div
               className="absolute top-4 left-4 h-1 rounded-full bg-gradient-to-r from-primary to-warm"
@@ -528,6 +527,8 @@ function DossierDetail() {
                 <Ligne label="Total TTC" value={fmt(totaux.totalTTC)} bold />
               </div>
             </Card>
+
+            <DossierChiffrage dossier={dossier} />
           </TabsContent>
 
           {/* Validation */}
@@ -596,7 +597,7 @@ function DossierDetail() {
                 disabled={!checklistOk || zonesNonValidees.length > 0}
                 onClick={genererDevis}
               >
-                <FileCheck2 className="mr-1 h-4 w-4" /> Valider et générer le devis technique
+                <FileCheck2 className="mr-1 h-4 w-4" /> Ouvrir la préparation du devis
               </Button>
             </Card>
           </TabsContent>
