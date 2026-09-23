@@ -95,7 +95,6 @@ function DossierDetail() {
   const [loading, setLoading] = useState(true);
   const [adjust, setAdjust] = useState<string | null>(null);
   const [zone, setZone] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
   const [notes, setNotes] = useState(dossier?.notes ?? "");
   const [chatOpen, setChatOpen] = useState(false);
 
@@ -151,52 +150,9 @@ function DossierDetail() {
   };
 
   const genererDevis = () => {
-    const version = (dossier.devis.at(-1)?.version ?? 0) + 1;
-    const nouvelle: DevisVersion = {
-      version,
-      date: nowStr().slice(0, 10),
-      total: totaux.totalTTC,
-      statut: "Envoyé",
-    };
-    updateDossier(
-      dossier.ref,
-      {
-        devis: [...dossier.devis, nouvelle],
-        etape: Math.max(dossier.etape, 3),
-        statut: "Devis envoyé",
-      },
-      { auteur: "M. Aboulssaad", label: `Devis technique v${version} généré et envoyé` },
-    );
-    toast.success(`Devis technique v${version} généré`);
     setTab("devis");
+    toast.info("Vérifiez le devis puis cliquez sur « Générer le devis »");
   };
-
-  const devisTexte = () =>
-    [
-      "STRONGAL — DEVIS TECHNIQUE",
-      "Menuiserie aluminium premium — Casablanca, Maroc",
-      `Référence dossier : ${dossier.ref}`,
-      `Client : ${dossier.client} — ${dossier.contact}`,
-      `Chantier : ${dossier.adresse}`,
-      `Date : ${nowStr().slice(0, 10)}`,
-      "",
-      "DÉTAIL PAR REPÈRE",
-      ...lignes.map(
-        (l) =>
-          `- ${l.repere.designation} (${l.repere.largeur} × ${l.repere.hauteur} m × ${l.repere.quantite}) | Profilé ${l.profileRef} ${fmtNum(l.ml)} ml | Vitrage ${l.vitrageType} ${fmtNum(l.surface)} m² | MO ${fmtNum(l.heures, 1)} h | Sous-total ${fmt(l.sousTotal)}`,
-      ),
-      "",
-      `Total matière : ${fmt(totaux.matiere)}`,
-      `Total main d'œuvre : ${fmt(totaux.mainOeuvre)}`,
-      `Transport : ${fmt(totaux.transport)}`,
-      `Marge (${totaux.margeTaux} %) : ${fmt(totaux.marge)}`,
-      `TOTAL HT : ${fmt(totaux.totalHT)}`,
-      `TVA 20 % : ${fmt(totaux.tva)}`,
-      `TOTAL TTC : ${fmt(totaux.totalTTC)}`,
-      "",
-      "Mentions légales : devis valable 30 jours. Acompte de 40 % à la commande.",
-      "Strongal SARL — ICE 000000000000000 — RC Casablanca — contact@strongal.ma",
-    ].join("\n");
 
   return (
     <AppShell>
@@ -689,85 +645,6 @@ function DossierDetail() {
             setZone(null);
           }}
         />
-
-        <Dialog open={preview} onOpenChange={setPreview}>
-          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Aperçu du devis technique — {dossier.ref}</DialogTitle>
-            </DialogHeader>
-            <div className="rounded-xl border bg-card p-8 text-sm">
-              <div className="flex items-start justify-between border-b pb-4">
-                <img src={LOGO_URL} alt="Strongal" className="h-12 object-contain" />
-                <div className="text-right text-xs text-muted-foreground">
-                  <p>Strongal SARL — Menuiserie aluminium</p>
-                  <p>Zone industrielle Ain Sebaâ, Casablanca</p>
-                  <p>contact@strongal.ma · +212 669-910658</p>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <p>
-                  <b>Client :</b> {dossier.client}
-                </p>
-                <p>
-                  <b>Référence :</b> {dossier.ref}
-                </p>
-                <p>
-                  <b>Chantier :</b> {dossier.adresse}
-                </p>
-                <p>
-                  <b>Date :</b> {nowStr().slice(0, 10)}
-                </p>
-              </div>
-              <table className="mt-5 w-full text-xs">
-                <thead className="border-b">
-                  <tr className="text-left">
-                    <th className="py-2">Repère</th>
-                    <th>Profilé / vitrage</th>
-                    <th className="text-right">Montant</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lignes.map((l) => (
-                    <tr key={l.repere.id} className="border-b">
-                      <td className="py-2">
-                        {l.repere.designation}
-                        <br />
-                        <span className="text-muted-foreground">
-                          {l.repere.largeur} × {l.repere.hauteur} m × {l.repere.quantite}
-                        </span>
-                      </td>
-                      <td>
-                        {l.profileRef} · {l.vitrageType}
-                      </td>
-                      <td className="text-right">{fmt(l.sousTotal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="mt-4 ml-auto w-64 space-y-1 text-xs">
-                <Ligne label="Total HT" value={fmt(totaux.totalHT)} />
-                <Ligne label="TVA 20 %" value={fmt(totaux.tva)} />
-                <Ligne label="Total TTC" value={fmt(totaux.totalTTC)} bold />
-              </div>
-              <p className="mt-6 text-[10px] text-muted-foreground">
-                Devis valable 30 jours. Acompte de 40 % à la commande, 40 % au lancement de la
-                fabrication, 20 % à la réception. TVA 20 % applicable. Strongal SARL — RC Casablanca —
-                ICE 000000000000000.
-              </p>
-            </div>
-            <DialogFooter>
-              <Button
-                className="shine"
-                onClick={() => {
-                  downloadTexte(`Devis-${dossier.ref}.txt`, devisTexte());
-                  toast.success("Devis téléchargé");
-                }}
-              >
-                <Download className="mr-1 h-4 w-4" /> Télécharger
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         <AssistantPanel dossier={dossier} open={chatOpen} setOpen={setChatOpen} />
       </PageTransition>

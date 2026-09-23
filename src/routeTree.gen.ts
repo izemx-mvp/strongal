@@ -14,6 +14,7 @@ import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FacturesRouteImport } from './routes/factures'
 import { Route as RelancesRouteImport } from './routes/relances'
+import { Route as DevisClientRefRouteImport } from './routes/devis-client.$ref'
 import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
 import { Route as DossiersRefRouteImport } from './routes/dossiers.$ref'
 
@@ -42,6 +43,11 @@ const RelancesRoute = RelancesRouteImport.update({
   path: '/relances',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevisClientRefRoute = DevisClientRefRouteImport.update({
+  id: '/devis-client/$ref',
+  path: '/devis-client/$ref',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DossiersIndexRoute = DossiersIndexRouteImport.update({
   id: '/dossiers/',
   path: '/dossiers/',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/factures': typeof FacturesRoute
   '/relances': typeof RelancesRoute
+  '/devis-client/$ref': typeof DevisClientRefRoute
   '/dossiers/$ref': typeof DossiersRefRoute
   '/dossiers/': typeof DossiersIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/factures': typeof FacturesRoute
   '/relances': typeof RelancesRoute
+  '/devis-client/$ref': typeof DevisClientRefRoute
   '/dossiers/$ref': typeof DossiersRefRoute
   '/dossiers': typeof DossiersIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/factures': typeof FacturesRoute
   '/relances': typeof RelancesRoute
+  '/devis-client/$ref': typeof DevisClientRefRoute
   '/dossiers/$ref': typeof DossiersRefRoute
   '/dossiers/': typeof DossiersIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/factures'
     | '/relances'
+    | '/devis-client/$ref'
     | '/dossiers/$ref'
     | '/dossiers/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/factures'
     | '/relances'
+    | '/devis-client/$ref'
     | '/dossiers/$ref'
     | '/dossiers'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/factures'
     | '/relances'
+    | '/devis-client/$ref'
     | '/dossiers/$ref'
     | '/dossiers/'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FacturesRoute: typeof FacturesRoute
   RelancesRoute: typeof RelancesRoute
+  DevisClientRefRoute: typeof DevisClientRefRoute
   DossiersRefRoute: typeof DossiersRefRoute
   DossiersIndexRoute: typeof DossiersIndexRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RelancesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/devis-client/$ref': {
+      id: '/devis-client/$ref'
+      path: '/devis-client/$ref'
+      fullPath: '/devis-client/$ref'
+      preLoaderRoute: typeof DevisClientRefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dossiers/': {
       id: '/dossiers/'
       path: '/dossiers'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FacturesRoute: FacturesRoute,
   RelancesRoute: RelancesRoute,
+  DevisClientRefRoute: DevisClientRefRoute,
   DossiersRefRoute: DossiersRefRoute,
   DossiersIndexRoute: DossiersIndexRoute,
 }
