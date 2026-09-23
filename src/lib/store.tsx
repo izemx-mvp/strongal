@@ -41,7 +41,7 @@ type Store = {
   markNotificationsRead: () => void;
 };
 
-const STORAGE_KEY = "strongal-erp-v1";
+const STORAGE_KEY = "strongal-erp-v2";
 
 const StoreContext = createContext<Store | null>(null);
 

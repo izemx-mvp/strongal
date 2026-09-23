@@ -58,11 +58,11 @@
 
 :root {
   --radius: 0.75rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.972 0.012 245);
   --foreground: oklch(0.198 0.008 264);
-  --card: oklch(1 0 0);
+  --card: oklch(0.992 0.006 255);
   --card-foreground: oklch(0.198 0.008 264);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.992 0.006 255);
   --popover-foreground: oklch(0.198 0.008 264);
   --primary: oklch(0.212 0.009 264);
   --primary-foreground: oklch(0.985 0 0);
@@ -228,16 +228,18 @@
   background:
     radial-gradient(
       120% 90% at 80% 0%,
-      color-mix(in oklab, var(--accent-soft) 90%, transparent),
+      color-mix(in oklab, var(--accent-glow) 58%, transparent),
       transparent 60%
     ),
+    radial-gradient(85% 65% at 10% 85%, color-mix(in oklab, var(--warm-glow) 24%, transparent), transparent 68%),
     var(--background);
 }
 
 @utility aurora-blob {
   position: absolute;
   border-radius: 999px;
-  filter: blur(80px);
+  filter: blur(70px);
+  opacity: 0.82;
   will-change: transform;
 }
 
@@ -248,7 +250,7 @@
   top: -10vw;
   background: radial-gradient(
     circle,
-    color-mix(in oklab, var(--primary-glow) 25%, transparent),
+    color-mix(in oklab, var(--primary-glow) 38%, transparent),
     transparent 70%
   );
   animation: aurora-a 26s ease-in-out infinite;
@@ -260,7 +262,7 @@
   top: 4vw;
   background: radial-gradient(
     circle,
-    color-mix(in oklab, var(--accent-glow) 45%, transparent),
+    color-mix(in oklab, var(--accent-glow) 62%, transparent),
     transparent 70%
   );
   animation: aurora-b 30s ease-in-out infinite;
@@ -272,7 +274,7 @@
   bottom: -16vw;
   background: radial-gradient(
     circle,
-    color-mix(in oklab, var(--warm-glow) 22%, transparent),
+    color-mix(in oklab, var(--warm-glow) 34%, transparent),
     transparent 70%
   );
   animation: aurora-c 24s ease-in-out infinite;

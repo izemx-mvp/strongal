@@ -134,6 +134,7 @@ export type StatutDossier =
   | "À valider"
   | "Validé"
   | "Devis envoyé"
+  | "Devis accepté"
   | "Livré";
 
 export type Dossier = {
@@ -147,7 +148,7 @@ export type Dossier = {
   dateCollecte: string;
   date: string;
   statut: StatutDossier;
-  etape: number; // 0..4
+  etape: number; // 0..9 — cycle opérationnel complet
   reperes: Repere[];
   notes: string;
   checklist: Record<string, boolean>;

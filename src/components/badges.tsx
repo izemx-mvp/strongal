@@ -7,6 +7,7 @@ const dossierColors: Record<StatutDossier, string> = {
   "À valider": "bg-warm/25 text-warm",
   Validé: "bg-success/15 text-success",
   "Devis envoyé": "bg-primary/10 text-primary",
+  "Devis accepté": "bg-success/15 text-success",
   Livré: "bg-success/20 text-success",
 };
 

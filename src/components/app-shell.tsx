@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
-  Receipt,
   Search,
   Settings2,
   Sun,
@@ -34,17 +33,12 @@ import { LOGO_URL } from "@/lib/data";
 import { planRelances, statutFactureEffectif } from "@/lib/erp";
 import { useStore } from "@/lib/store";
 
-/** Navigation principale : les 3 interfaces, dans le header. */
+/** Navigation principale : toutes les interfaces restent dans la barre latérale. */
 const NAV = [
   { to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { to: "/dossiers", label: "Dossiers & Chiffrage", icon: FolderKanban },
-  { to: "/configuration", label: "Configuration", icon: Settings2 },
-] as const;
-
-/** Modules secondaires dans la barre latérale. */
-const SECONDARY = [
   { to: "/relances", label: "Relances commerciales", icon: BellRing },
-  { to: "/factures", label: "Facturation", icon: Receipt },
+  { to: "/configuration", label: "Configuration", icon: Settings2 },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -54,7 +48,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     notifications,
     markNotificationsRead,
     dossiers,
-    factures,
     relanceConfig,
     theme,
     toggleTheme,
@@ -66,9 +59,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const compteurs = useMemo(() => {
     const dues = dossiers.flatMap((d) => planRelances(d, relanceConfig)).filter((r) => r.statut === "Due").length;
-    const retard = factures.filter((f) => statutFactureEffectif(f) === "En retard").length;
-    return { "/relances": dues, "/factures": retard } as Record<string, number>;
-  }, [dossiers, factures, relanceConfig]);
+    return { "/relances": dues } as Record<string, number>;
+  }, [dossiers, relanceConfig]);
 
   const go = () => {
     const q = quick.trim().toLowerCase();
@@ -108,11 +100,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {sidebarOpen && (
             <p className="px-5 pb-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-              Suivi commercial
+               Pilotage Strongal
             </p>
           )}
           <nav className="flex flex-1 flex-col gap-1 px-2">
-            {SECONDARY.map((item) => {
+             {NAV.map((item) => {
               const active = pathname.startsWith(item.to);
               const count = compteurs[item.to] ?? 0;
               const link = (
@@ -176,40 +168,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className={`transition-[margin] duration-200 ${sidebarOpen ? "md:ml-[240px]" : "md:ml-16"}`}>
           <header className="glass sticky top-0 z-30 rounded-none border-x-0 border-t-0">
             <div className="flex items-center gap-3 px-4 py-2.5">
-              <nav className="scroll-slim flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
-                {[...NAV, ...SECONDARY.map((s) => ({ ...s, mobile: true }))].map((item) => {
-                  const active = pathname.startsWith(item.to);
-                  const mobileOnly = "mobile" in item;
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      className={`relative flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors ${
-                        mobileOnly ? "md:hidden" : ""
-                      } ${
-                        active
-                          ? "font-semibold text-foreground"
-                          : "text-muted-foreground hover:bg-accent-soft/60 hover:text-foreground"
-                      }`}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="header-active"
-                          className="absolute inset-0 -z-10 rounded-lg bg-accent-soft"
-                        />
-                      )}
-                      <item.icon className={`h-4 w-4 ${active ? "text-warm" : ""}`} />
-                      <span className="hidden sm:inline">{item.label}</span>
-                      {active && (
-                        <motion.span
-                          layoutId="header-underline"
-                          className="absolute right-3 -bottom-[11px] left-3 h-0.5 rounded-full bg-warm"
-                        />
-                      )}
-                    </Link>
-                  );
-                })}
-              </nav>
+               <div className="min-w-0 flex-1 md:hidden">
+                 <DropdownMenu>
+                   <DropdownMenuTrigger asChild>
+                     <Button variant="outline" className="max-w-full justify-start">
+                       {NAV.find((item) => pathname.startsWith(item.to))?.label ?? "Navigation"}
+                     </Button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent align="start">
+                     {NAV.map((item) => (
+                       <DropdownMenuItem key={item.to} asChild>
+                         <Link to={item.to}><item.icon className="mr-2 h-4 w-4" />{item.label}</Link>
+                       </DropdownMenuItem>
+                     ))}
+                   </DropdownMenuContent>
+                 </DropdownMenu>
+               </div>
+               <div className="hidden min-w-0 flex-1 md:block" />
 
               <div className="relative hidden w-56 xl:block">
                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
