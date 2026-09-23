@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LOGO_URL } from "@/lib/data";
-import { planRelances, statutFactureEffectif } from "@/lib/erp";
+import { planRelances } from "@/lib/erp";
 import { useStore } from "@/lib/store";
 
 /** Navigation principale : toutes les interfaces restent dans la barre latérale. */

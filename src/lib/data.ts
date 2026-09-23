@@ -693,6 +693,7 @@ const statutEtape: Record<StatutDossier, number> = {
   "À valider": 2,
   Validé: 3,
   "Devis envoyé": 3,
+  "Devis accepté": 4,
   Livré: 4,
 };
 

@@ -302,9 +302,19 @@ export type Suivi = { phases: Phase[]; historique: SuiviMaj[] };
 export const EQUIPE = ["Mohamed", "Youssef", "Karim", "Hicham", "Samir", "M. Aboulssaad"];
 
 export function initSuivi(d: Dossier): Suivi {
-  // Estimation de départ à partir de l'avancement commercial.
-  const done = d.statut === "Livré" ? 7 : d.statut === "Devis envoyé" || d.statut === "Validé" ? 1 : 0;
-  const current = d.statut === "Livré" ? -1 : d.statut === "Devis envoyé" ? 1 : d.statut === "Validé" ? 1 : d.etape >= 2 ? 0 : -1;
+  // Le suivi terrain démarre après acceptation du devis, sans fusionner avec le statut commercial.
+  const cyclePhase: Record<number, string> = {
+    4: "appro",
+    5: "fabrication",
+    6: "livraison",
+    7: "pose",
+    8: "controle",
+    9: "garantie",
+  };
+  const currentId = cyclePhase[d.etape];
+  const currentIndex = currentId ? PHASES.findIndex((p) => p.id === currentId) : -1;
+  const done = d.etape >= 9 ? 7 : Math.max(0, currentIndex);
+  const current = d.etape >= 4 && d.etape < 9 ? currentIndex : -1;
   return {
     phases: PHASES.map((p, i) => {
       const fini = i < done;
@@ -312,8 +322,8 @@ export function initSuivi(d: Dossier): Suivi {
       return {
         id: p.id,
         etat: fini ? "Terminée" : enCours ? "En cours" : "À venir",
-        statut: fini ? p.statuts.at(-1)! : enCours ? p.statuts[1] : p.statuts[0],
-        progression: fini ? 100 : enCours ? 30 : 0,
+        statut: fini ? (p.statuts.at(-1) ?? p.statuts[0]) : enCours ? (p.statuts[1] ?? p.statuts[0]) : p.statuts[0],
+        progression: fini ? 100 : enCours ? (p.id === "fabrication" ? 65 : 30) : 0,
         responsable: fini || enCours ? d.technicien.split(" ")[0] || "Mohamed" : "",
         dateDebut: fini || enCours ? d.date : "",
         dateFinPrevue: "",

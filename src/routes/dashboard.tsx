@@ -86,7 +86,7 @@ function Dashboard() {
     { label: "Chantiers en fabrication, livraison ou pose", value: chantiers, icon: HardHat, to: "/dossiers", search: {} },
     { label: "Taux de chute moyen sur débitage", value: chute, icon: Scissors, to: "/dossiers", search: {}, suffix: " %", decimals: 1 },
     { label: "Relances à envoyer (manuellement)", value: relancesDues, icon: BellRing, to: "/relances", search: {} },
-    { label: "Factures à encaisser (MAD TTC)", value: aEncaisser, icon: Receipt, to: "/factures", search: {} },
+    { label: "Factures à encaisser (MAD TTC)", value: aEncaisser, icon: Receipt, to: "/dossiers", search: {} },
   ] as const;
 
   const chart = useMemo(
