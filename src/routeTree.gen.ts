@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfigurationRouteImport } from './routes/configuration'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as RelancesRouteImport } from './routes/relances'
 import { Route as DossiersIndexRouteImport } from './routes/dossiers.index'
 import { Route as DossiersRefRouteImport } from './routes/dossiers.$ref'
 
@@ -30,6 +31,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RelancesRoute = RelancesRouteImport.update({
+  id: '/relances',
+  path: '/relances',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DossiersIndexRoute = DossiersIndexRouteImport.update({
   id: '/dossiers/',
   path: '/dossiers/',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
+  '/relances': typeof RelancesRoute
   '/dossiers/$ref': typeof DossiersRefRoute
   '/dossiers/': typeof DossiersIndexRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
+  '/relances': typeof RelancesRoute
   '/dossiers/$ref': typeof DossiersRefRoute
   '/dossiers': typeof DossiersIndexRoute
 }
@@ -60,20 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/configuration': typeof ConfigurationRoute
   '/dashboard': typeof DashboardRoute
+  '/relances': typeof RelancesRoute
   '/dossiers/$ref': typeof DossiersRefRoute
   '/dossiers/': typeof DossiersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/configuration' | '/dashboard' | '/dossiers/$ref' | '/dossiers/'
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/relances'
+    | '/dossiers/$ref'
+    | '/dossiers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/configuration' | '/dashboard' | '/dossiers/$ref' | '/dossiers'
+  to:
+    | '/'
+    | '/configuration'
+    | '/dashboard'
+    | '/relances'
+    | '/dossiers/$ref'
+    | '/dossiers'
   id:
     | '__root__'
     | '/'
     | '/configuration'
     | '/dashboard'
+    | '/relances'
     | '/dossiers/$ref'
     | '/dossiers/'
   fileRoutesById: FileRoutesById
@@ -82,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfigurationRoute: typeof ConfigurationRoute
   DashboardRoute: typeof DashboardRoute
+  RelancesRoute: typeof RelancesRoute
   DossiersRefRoute: typeof DossiersRefRoute
   DossiersIndexRoute: typeof DossiersIndexRoute
 }
@@ -109,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/relances': {
+      id: '/relances'
+      path: '/relances'
+      fullPath: '/relances'
+      preLoaderRoute: typeof RelancesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dossiers/': {
       id: '/dossiers/'
       path: '/dossiers'
@@ -130,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfigurationRoute: ConfigurationRoute,
   DashboardRoute: DashboardRoute,
+  RelancesRoute: RelancesRoute,
   DossiersRefRoute: DossiersRefRoute,
   DossiersIndexRoute: DossiersIndexRoute,
 }
