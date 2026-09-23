@@ -40,22 +40,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { computeDebitage, computeLignes, computeTotaux, fmt, fmtNum } from "@/lib/calc";
 import { CHECKLIST_ITEMS, LOGO_URL, type DevisVersion, type Dossier, type StatutDossier } from "@/lib/data";
 import { downloadTexte } from "@/lib/download";
+import { getSuivi, PHASES } from "@/lib/erp";
 import { nowStr, useStore } from "@/lib/store";
 
 const ETAPES = [
-  { nom: "Collecte terrain", phrase: "Le technicien relève les repères et les contraintes sur site." },
-  {
-    nom: "Chiffrage matières",
-    phrase: "L'agent IA calcule actuellement les besoins matière à partir des repères collectés.",
-  },
-  { nom: "Validation", phrase: "Le chiffrage attend votre validation humaine point par point." },
-  { nom: "Devis technique", phrase: "Le devis technique est généré et suivi jusqu'à la réponse client." },
-  { nom: "Livré", phrase: "Le chantier est livré et le dossier est clôturé." },
+  { nom: "Collecte", phrase: "Vérifiez les coordonnées, le chantier et tous les repères relevés.", tab: "synthese" },
+  { nom: "Chiffrage", phrase: "Contrôlez les matières, le débitage et les zones d'équilibrage.", tab: "chiffrage" },
+  { nom: "Validation", phrase: "Complétez la checklist de validation humaine.", tab: "validation" },
+  { nom: "Devis", phrase: "Finalisez le devis et obtenez l'acceptation du client.", tab: "devis" },
+  { nom: "Approvisionnement", phrase: "Suivez les commandes et la réception des matières.", tab: "suivi", phaseId: "appro" },
+  { nom: "Fabrication", phrase: "Suivez l'avancement réel de la fabrication en atelier.", tab: "suivi", phaseId: "fabrication" },
+  { nom: "Livraison", phrase: "Préparez et confirmez la livraison sur chantier.", tab: "suivi", phaseId: "livraison" },
+  { nom: "Pose", phrase: "Pilotez l'équipe et l'avancement de l'installation.", tab: "suivi", phaseId: "pose" },
+  { nom: "Réception", phrase: "Levez les réserves et confirmez la réception finale.", tab: "suivi", phaseId: "controle" },
+  { nom: "Facturation", phrase: "Créez, validez et générez la facture du dossier.", tab: "factures" },
 ];
 
 const STATUT_PAR_ETAPE: StatutDossier[] = [
@@ -63,6 +66,11 @@ const STATUT_PAR_ETAPE: StatutDossier[] = [
   "Chiffrage en cours",
   "À valider",
   "Validé",
+  "Devis accepté",
+  "Devis accepté",
+  "Devis accepté",
+  "Devis accepté",
+  "Devis accepté",
   "Livré",
 ];
 
@@ -87,11 +95,11 @@ export const Route = createFileRoute("/dossiers/$ref")({
 
 function DossierDetail() {
   const { ref } = Route.useParams();
-  const { dossiers, updateDossier, config } = useStore();
+  const { dossiers, updateDossier, config, factures, utilisateur } = useStore();
   const navigate = useNavigate();
   const dossier = dossiers.find((d) => d.ref === ref);
 
-  const [tab, setTab] = useState("synthese");
+  const [viewStep, setViewStep] = useState(dossier?.etape ?? 0);
   const [loading, setLoading] = useState(true);
   const [adjust, setAdjust] = useState<string | null>(null);
   const [zone, setZone] = useState<string | null>(null);
@@ -103,6 +111,8 @@ function DossierDetail() {
     const t = setTimeout(() => setLoading(false), 650);
     return () => clearTimeout(t);
   }, [ref]);
+
+  useEffect(() => setViewStep(dossier?.etape ?? 0), [dossier?.etape, ref]);
 
   const lignes = useMemo(() => (dossier ? computeLignes(dossier, config) : []), [dossier, config]);
   const plans = useMemo(() => (dossier ? computeDebitage(dossier, config) : []), [dossier, config]);
@@ -130,27 +140,77 @@ function DossierDetail() {
   const checklistOk = CHECKLIST_ITEMS.every((c) => dossier.checklist[c]);
 
   const nextStep = () => {
+    if (dossier.etape === 0) {
+      const collecteComplete = dossier.client.trim() && dossier.contact.trim() && dossier.adresse.trim() && dossier.reperes.length > 0 && dossier.reperes.every((r) => r.largeur > 0 && r.hauteur > 0 && r.quantite > 0);
+      if (!collecteComplete) {
+        toast.error("Complétez le client, le chantier et tous les repères avant de continuer");
+        return;
+      }
+    }
     if (dossier.etape === 1 && zonesNonValidees.length > 0) {
       toast.error(
         `${zonesNonValidees.length} repère(s) en zone d'équilibrage doivent être validés manuellement`,
       );
       return;
     }
-    if (dossier.etape >= 4) {
-      toast.info("Ce dossier est déjà livré");
+    if (dossier.etape === 2 && !checklistOk) {
+      toast.error("La checklist de validation doit être entièrement complétée");
       return;
+    }
+    if (dossier.etape === 3 && dossier.devis.at(-1)?.statut !== "Accepté") {
+      toast.error("Le dernier devis doit être généré puis accepté avant l'approvisionnement");
+      setViewStep(3);
+      return;
+    }
+    if (dossier.etape === 9) {
+      const factureGeneree = factures.some((f) => f.dossierRef === dossier.ref && f.statut !== "Brouillon");
+      if (!factureGeneree) {
+        toast.error("Générez au moins une facture avant de clôturer le dossier");
+        return;
+      }
+      toast.success("Cycle opérationnel du dossier terminé");
+      return;
+    }
+
+    const currentDefinition = ETAPES[dossier.etape];
+    let suiviPatch: Dossier["suivi"] | undefined;
+    if (currentDefinition.phaseId) {
+      const suivi = getSuivi(dossier);
+      const phase = suivi.phases.find((p) => p.id === currentDefinition.phaseId);
+      const def = PHASES.find((p) => p.id === currentDefinition.phaseId);
+      if (!phase?.responsable) {
+        toast.error("Affectez un responsable à cette phase avant de la terminer");
+        setViewStep(dossier.etape);
+        return;
+      }
+      if (def && def.points.some((point) => !phase.points[point])) {
+        toast.error("Complétez tous les points de contrôle de cette phase");
+        setViewStep(dossier.etape);
+        return;
+      }
+      const nextDefinition = ETAPES[dossier.etape + 1];
+      const date = nowStr();
+      suiviPatch = {
+        phases: suivi.phases.map((p) => {
+          if (p.id === currentDefinition.phaseId) return { ...p, etat: "Terminée" as const, progression: 100, statut: def?.statuts.at(-1) ?? p.statut, dateMaj: date };
+          if (nextDefinition?.phaseId && p.id === nextDefinition.phaseId) return { ...p, etat: "En cours" as const, progression: Math.max(5, p.progression), responsable: p.responsable || phase.responsable, dateDebut: p.dateDebut || date.slice(0, 10), dateMaj: date };
+          return p;
+        }),
+        historique: [...suivi.historique, { date, phaseId: currentDefinition.phaseId, auteur: utilisateur, label: `${currentDefinition.nom} terminée — passage à l'étape suivante` }],
+      };
     }
     const etape = dossier.etape + 1;
     updateDossier(
       dossier.ref,
-      { etape, statut: STATUT_PAR_ETAPE[etape] },
-      { auteur: "M. Aboulssaad", label: `Passage à l'étape « ${ETAPES[etape].nom} »` },
+      { etape, statut: STATUT_PAR_ETAPE[etape], ...(suiviPatch ? { suivi: suiviPatch } : {}) },
+      { auteur: utilisateur, label: `Étape « ${currentDefinition.nom} » complétée — passage à « ${ETAPES[etape].nom} »` },
     );
+    setViewStep(etape);
     toast.success(`Étape suivante : ${ETAPES[etape].nom}`);
   };
 
   const genererDevis = () => {
-    setTab("devis");
+    setViewStep(3);
     toast.info("Vérifiez le devis puis cliquez sur « Générer le devis »");
   };
 
@@ -175,7 +235,10 @@ function DossierDetail() {
           )}
         </div>
 
-        <DossierOverview dossier={dossier} onTab={setTab} />
+        <DossierOverview dossier={dossier} onTab={(target) => {
+          const index = ETAPES.findIndex((e) => e.tab === target);
+          if (index >= 0 && index <= dossier.etape) setViewStep(index);
+        }} />
 
         {/* Workflow administratif / commercial (distinct du suivi chantier) */}
         <Card className="glass glass-hover mb-4 p-5">
@@ -191,12 +254,12 @@ function DossierDetail() {
               transition={{ duration: 0.6, ease: "easeInOut" }}
             />
             {ETAPES.map((e, i) => (
-              <div key={e.nom} className="relative z-10 flex flex-1 flex-col items-center text-center">
+              <button key={e.nom} type="button" disabled={i > dossier.etape} onClick={() => setViewStep(i)} className="relative z-10 flex min-w-24 flex-1 flex-col items-center text-center disabled:cursor-not-allowed">
                 <span
                   className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold ${
                     i < dossier.etape
                       ? "border-warm bg-warm text-warm-foreground"
-                      : i === dossier.etape
+                      : i === viewStep
                         ? "pulse-dot border-warm bg-background text-warm"
                         : "border-border bg-background text-muted-foreground"
                   }`}
@@ -204,42 +267,21 @@ function DossierDetail() {
                   {i + 1}
                 </span>
                 <span className="mt-2 text-xs font-medium">{e.nom}</span>
-              </div>
+              </button>
             ))}
           </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">{ETAPES[dossier.etape].phrase}</p>
+             <p className="text-sm text-muted-foreground">{ETAPES[viewStep].phrase}</p>
             <Button className="shine" onClick={nextStep}>
-              Passer à l'étape suivante <ArrowRight className="ml-1 h-4 w-4" />
+               {dossier.etape === 9 ? "Terminer le cycle" : "Terminer et passer à l'étape suivante"} <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </Card>
 
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="h-auto flex-wrap justify-start">
-            <TabsTrigger value="synthese">Fiche de synthèse</TabsTrigger>
-            <TabsTrigger value="chiffrage" disabled={dossier.etape < 1}>
-              Chiffrage matières
-            </TabsTrigger>
-            <TabsTrigger value="validation" disabled={dossier.etape < 2}>
-              Validation
-            </TabsTrigger>
-            <TabsTrigger value="commercial">Dossier de chiffrage</TabsTrigger>
-            <TabsTrigger value="devis">Devis</TabsTrigger>
-            <TabsTrigger value="suivi">Suivi chantier</TabsTrigger>
-            <TabsTrigger value="relances">Relances</TabsTrigger>
-            <TabsTrigger value="factures">Factures</TabsTrigger>
-            <TabsTrigger value="historique">Historique & audit</TabsTrigger>
-          </TabsList>
+        <Tabs value={ETAPES[viewStep].tab}>
 
-          <TabsContent value="commercial" className="mt-4">
-            <DossierChiffrage dossier={dossier} />
-          </TabsContent>
           <TabsContent value="suivi" className="mt-4">
             <SuiviChantier dossier={dossier} />
-          </TabsContent>
-          <TabsContent value="relances" className="mt-4">
-            <RelancesDossier dossier={dossier} />
           </TabsContent>
           <TabsContent value="factures" className="mt-4">
             <DossierFactures dossier={dossier} />
