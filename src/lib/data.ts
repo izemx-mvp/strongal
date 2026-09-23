@@ -636,7 +636,7 @@ function dateStr(daysAgo: number) {
 
 export const initialDossiers: Dossier[] = seeds.map((s, i) => {
   const [client, typeProjet, gamme, statut, adresse, ouvrageId, profileId, designations, cycleEtape] = s;
-  const n = String(i + 1).padStart(3, "0");
+  const n = String(i === seeds.length - 1 ? 18 : i + 1).padStart(3, "0");
   const ref = `STR-2026-${n}`;
   const reperes: Repere[] = designations.map((designation, j) => {
     const big = i === 0 || i === 10 || i === 16;

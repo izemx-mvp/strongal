@@ -235,7 +235,7 @@ function DossierDetail() {
         </div>
 
         <DossierOverview dossier={dossier} onTab={(target) => {
-          const index = ETAPES.findIndex((e) => e.tab === target);
+          const index = ETAPES[dossier.etape].tab === target ? dossier.etape : ETAPES.findIndex((e) => e.tab === target);
           if (index >= 0 && index <= dossier.etape) setViewStep(index);
         }} />
 
@@ -271,8 +271,8 @@ function DossierDetail() {
           </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
              <p className="text-sm text-muted-foreground">{ETAPES[viewStep].phrase}</p>
-            <Button className="shine" onClick={nextStep}>
-               {dossier.etape === 9 ? "Terminer le cycle" : "Terminer et passer à l'étape suivante"} <ArrowRight className="ml-1 h-4 w-4" />
+             <Button className="shine" onClick={viewStep === dossier.etape ? nextStep : () => setViewStep(dossier.etape)}>
+               {viewStep !== dossier.etape ? "Revenir à l'étape actuelle" : dossier.etape === 9 ? "Terminer le cycle" : "Terminer et passer à l'étape suivante"} <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </Card>
@@ -280,7 +280,7 @@ function DossierDetail() {
         <Tabs value={ETAPES[viewStep].tab}>
 
           <TabsContent value="suivi" className="mt-4">
-            <SuiviChantier dossier={dossier} />
+            <SuiviChantier key={`${dossier.ref}-${viewStep}`} dossier={dossier} />
           </TabsContent>
           <TabsContent value="factures" className="mt-4">
             <DossierFactures dossier={dossier} />

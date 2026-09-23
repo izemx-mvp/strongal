@@ -40,11 +40,11 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const ACTIVITES = [
-  { t: "il y a 12 min", l: "Agent Chiffrage a calculé les matières premières du dossier STR-2026-014" },
-  { t: "il y a 40 min", l: "Fabrication démarrée sur STR-2026-004 — Mohamed" },
-  { t: "il y a 3 h", l: "Zone d'équilibrage détectée sur STR-2026-011, validation humaine requise" },
-  { t: "il y a 5 h", l: "Devis technique v1 envoyé à Mme Salma Bennani (STR-2026-004)" },
-  { t: "hier", l: "Agent Chiffrage : taux de chute optimisé à 8,4 % sur STR-2026-003" },
+  { t: "il y a 12 min", l: "Fabrication portée à 65 % sur le siège Novatech Industries" },
+  { t: "il y a 40 min", l: "Livraison confirmée pour la Clinique Horizon Santé" },
+  { t: "il y a 3 h", l: "Validation humaine requise sur le dossier Atelier Atlas Mobilité" },
+  { t: "il y a 5 h", l: "Devis technique envoyé pour la Résidence Yasmine" },
+  { t: "hier", l: "Réception finale enregistrée pour le showroom Mobilia Design" },
 ];
 
 function Dashboard() {
