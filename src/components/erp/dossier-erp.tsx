@@ -399,7 +399,7 @@ export function DossierOverview({ dossier, onTab }: { dossier: Dossier; onTab: (
   const next = plan.find((x) => !x.envoi);
   const facs = factures.filter((f) => f.dossierRef === dossier.ref);
   return (
-    <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+    <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
       <Bloc titre="Client">
         <p className="font-semibold">{dossier.client}</p>
         <p className="text-xs">{dossier.contact}</p>
