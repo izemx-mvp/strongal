@@ -1,3 +1,11 @@
+export type ModeVente = "ml-largeur" | "ml-hauteur" | "m2" | "unite";
+export const MODES_VENTE: { value: ModeVente; label: string }[] = [
+  { value: "ml-largeur", label: "Mètre linéaire (largeur)" },
+  { value: "ml-hauteur", label: "Mètre linéaire (hauteur)" },
+  { value: "m2", label: "Mètre carré (m²)" },
+  { value: "unite", label: "À l'unité" },
+];
+
 export type Profile = {
   id: string;
   ref: string;
@@ -8,6 +16,36 @@ export type Profile = {
   delai: number; // jours
   moq: number; // ml
   prixBarre: number; // MAD par barre
+  fournisseur?: string;
+  codeFournisseur?: string;
+  modeVente?: ModeVente;
+  methode?: string;
+};
+
+export type ConditionSite = "vent" | "bruit" | "mer" | "hauteur" | "soleil";
+export const CONDITIONS_SITE: { value: ConditionSite; label: string }[] = [
+  { value: "vent", label: "Zone ventée" },
+  { value: "bruit", label: "Zone bruyante" },
+  { value: "mer", label: "Bord de mer" },
+  { value: "hauteur", label: "Étage élevé" },
+  { value: "soleil", label: "Forte exposition soleil" },
+];
+
+export type RegleSavoirFaire = {
+  id: string;
+  condition: ConditionSite | "general";
+  titre: string;
+  conseil: string;
+  prixSuggere: number;
+  unite: string;
+};
+
+export type ChangementPrix = {
+  date: string;
+  fournisseur: string;
+  pct: number;
+  nbArticles: number;
+  auteur: string;
 };
 
 export type Vitrage = {
