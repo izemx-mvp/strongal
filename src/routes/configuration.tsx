@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { PageTransition } from "@/components/motion-bits";
 import { ProduitsTab } from "@/components/produits-tab";
+import { PrixFournisseursTab, SavoirFaireTab } from "@/components/config-extra";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -78,8 +79,12 @@ function ConfigurationPage() {
             <TabsTrigger value="ouvrages">Ouvrages</TabsTrigger>
             <TabsTrigger value="debitage">Débitage & seuils</TabsTrigger>
             <TabsTrigger value="bareme">Barème & marges</TabsTrigger>
+            <TabsTrigger value="fournisseurs">Prix fournisseurs</TabsTrigger>
+            <TabsTrigger value="savoir">Savoir-faire</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="fournisseurs" className="mt-4"><PrixFournisseursTab /></TabsContent>
+          <TabsContent value="savoir" className="mt-4"><SavoirFaireTab /></TabsContent>
           <TabsContent value="produits" className="mt-4">
             <ProduitsTab />
           </TabsContent>

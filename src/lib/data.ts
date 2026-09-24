@@ -1,3 +1,11 @@
+export type ModeVente = "ml-largeur" | "ml-hauteur" | "m2" | "unite";
+export const MODES_VENTE: { value: ModeVente; label: string }[] = [
+  { value: "ml-largeur", label: "Mètre linéaire (largeur)" },
+  { value: "ml-hauteur", label: "Mètre linéaire (hauteur)" },
+  { value: "m2", label: "Mètre carré (m²)" },
+  { value: "unite", label: "À l'unité" },
+];
+
 export type Profile = {
   id: string;
   ref: string;
@@ -8,6 +16,36 @@ export type Profile = {
   delai: number; // jours
   moq: number; // ml
   prixBarre: number; // MAD par barre
+  fournisseur?: string;
+  codeFournisseur?: string;
+  modeVente?: ModeVente;
+  methode?: string;
+};
+
+export type ConditionSite = "vent" | "bruit" | "mer" | "hauteur" | "soleil";
+export const CONDITIONS_SITE: { value: ConditionSite; label: string }[] = [
+  { value: "vent", label: "Zone ventée" },
+  { value: "bruit", label: "Zone bruyante" },
+  { value: "mer", label: "Bord de mer" },
+  { value: "hauteur", label: "Étage élevé" },
+  { value: "soleil", label: "Forte exposition soleil" },
+];
+
+export type RegleSavoirFaire = {
+  id: string;
+  condition: ConditionSite | "general";
+  titre: string;
+  conseil: string;
+  prixSuggere: number;
+  unite: string;
+};
+
+export type ChangementPrix = {
+  date: string;
+  fournisseur: string;
+  pct: number;
+  nbArticles: number;
+  auteur: string;
 };
 
 export type Vitrage = {
@@ -63,6 +101,11 @@ export type Produit = {
   vitrageId: string;
   heuresM2: number;
   composants: ComposantProduit[];
+  gamme?: "Standard" | "Décoratif" | "Technique";
+  systeme?: string;
+  typesChantier?: string[];
+  modeVente?: ModeVente;
+  methode?: string;
 };
 
 export type Config = {
@@ -82,6 +125,9 @@ export type Config = {
   margeHautDeGamme: number;
   arrondi: "cm" | "mm";
   validated: boolean;
+  surchargeEtagePct?: number;
+  reglesSavoirFaire?: RegleSavoirFaire[];
+  historiquePrix?: ChangementPrix[];
 };
 
 export type Repere = {
@@ -151,6 +197,10 @@ export type Dossier = {
   suivi?: import("./erp").Suivi;
   relances?: import("./erp").RelanceEnvoyee[];
   demandesClient?: import("./erp").DemandeClient[];
+  telephone?: string;
+  etage?: number;
+  conditionsSite?: ConditionSite[];
+  premierAppel?: { fait: boolean; date?: string; note?: string };
 };
 
 /* ------------------------------ Config par défaut ------------------------------ */
@@ -397,7 +447,35 @@ export const defaultConfig: Config = {
   margeHautDeGamme: 28,
   arrondi: "cm",
   validated: false,
+  surchargeEtagePct: 6,
+  reglesSavoirFaire: [
+    { id: "r1", condition: "vent", titre: "Renfort façade et côtés", conseil: "En zone ventée, prévoir un renfort de dormant sur la façade et les côtés, et des équerres supplémentaires.", prixSuggere: 180, unite: "ml" },
+    { id: "r2", condition: "bruit", titre: "Vitrage acoustique", conseil: "Zone bruyante : proposer un double vitrage acoustique feuilleté 44.2 silence et joints renforcés.", prixSuggere: 420, unite: "m²" },
+    { id: "r3", condition: "mer", titre: "Finition marine", conseil: "Bord de mer : anodisation qualité marine ou laquage Qualimarine, visserie inox A4.", prixSuggere: 90, unite: "ml" },
+    { id: "r4", condition: "hauteur", titre: "Levage et sécurité", conseil: "Étage élevé : prévoir moyen de levage, harnais et une demi-journée d'équipe supplémentaire.", prixSuggere: 1500, unite: "forfait" },
+    { id: "r5", condition: "soleil", titre: "Vitrage contrôle solaire", conseil: "Forte exposition : vitrage à contrôle solaire ou brise-soleil orientable.", prixSuggere: 350, unite: "m²" },
+    { id: "r6", condition: "general", titre: "Mesures réelles", conseil: "Toujours reprendre les mesures finales après enduit : la quantité réellement posée est souvent inférieure au métré brut.", prixSuggere: 0, unite: "" },
+  ],
+  historiquePrix: [],
 };
+
+// Valeurs fournisseur / méthode de vente par défaut (démo, à remplacer par le catalogue réel).
+const FOURNISSEURS = ["Technal", "Schüco", "Sapa", "Aluk"];
+defaultConfig.profiles = defaultConfig.profiles.map((p, i) => ({
+  ...p,
+  fournisseur: p.fournisseur ?? FOURNISSEURS[i % FOURNISSEURS.length],
+  codeFournisseur: p.codeFournisseur ?? `F-${1000 + i * 37}`,
+  modeVente: p.modeVente ?? (i % 3 === 0 ? "m2" : i % 3 === 1 ? "ml-largeur" : "ml-hauteur"),
+  methode: p.methode ?? "Prix de base au ml × ratio de consommation, chute incluse.",
+}));
+defaultConfig.produits = defaultConfig.produits.map((p, i) => ({
+  ...p,
+  gamme: p.gamme ?? (["Standard", "Décoratif", "Technique"] as const)[i % 3],
+  systeme: p.systeme ?? FOURNISSEURS[i % FOURNISSEURS.length],
+  typesChantier: p.typesChantier ?? [["Villa", "Appartement"], ["Villa", "Façade"], ["Portail", "Villa"]][i % 3],
+  modeVente: p.modeVente ?? (i % 2 ? "m2" : "unite"),
+  methode: p.methode ?? "Prix de base × ratio de gamme ; ajuster selon étage et contraintes chantier.",
+}));
 
 export const CHECKLIST_ITEMS = [
   "Dimensions confirmées sur site",

@@ -18,7 +18,30 @@ export type LigneCom = {
   achatManuel?: boolean;
   venteManuel?: boolean;
   repereId?: string;
+  /** Quantité métrée (brute) vs quantité réellement utilisée (qte). */
+  qteMesuree?: number;
+  modeVente?: string;
+  methode?: string;
+  speciale?: boolean;
 };
+
+export type OptionDevis = {
+  id: string;
+  nom: string;
+  description: string;
+  ratio: number;
+  prixManuel?: number;
+};
+
+export const OPTIONS_DEFAUT: OptionDevis[] = [
+  { id: "o1", nom: "Standard", description: "Gamme standard, renfort sans", ratio: 1 },
+  { id: "o2", nom: "Renforcé 1 côté", description: "Renfort sur un seul côté", ratio: 1.12 },
+  { id: "o3", nom: "Décoratif", description: "Profils décoratifs, finitions premium", ratio: 1.25 },
+  { id: "o4", nom: "Technique", description: "Grandes ouvertures, renfort façade + côtés", ratio: 1.45 },
+  { id: "o5", nom: "Premium", description: "Technique + vitrage acoustique / contrôle solaire", ratio: 1.7 },
+];
+
+export const prixOption = (o: OptionDevis, base: number) => o.prixManuel ?? base * o.ratio;
 
 export type TypeFrais = "pose" | "mainOeuvre" | "livraison" | "autre";
 export const TYPES_FRAIS: { value: TypeFrais; label: string }[] = [
@@ -44,6 +67,11 @@ export type Commercial = {
   tvaTaux: number;
   tvaManuelle?: number;
   marge: { mode: "auto" | "pct" | "montant"; valeur: number };
+  /** % de chute matière ajouté au coût fourniture. */
+  chutePct?: number;
+  options?: OptionDevis[];
+  optionChoisie?: string;
+  afficherOptions?: boolean;
 };
 
 export type DevisInfo = {
@@ -96,6 +124,8 @@ export function initCommercial(d: Dossier, config: Config): Commercial {
         unite: "u",
         achatU,
         venteU: Math.round(achatU * (1 + margeTaux / 100)),
+        methode: config.produits.find((p) => p.id === l.produitId)?.methode,
+        modeVente: config.produits.find((p) => p.id === l.produitId)?.modeVente,
       };
     }),
     frais: [
@@ -137,7 +167,9 @@ export function ligneTotaux(l: LigneCom) {
 
 export function calcCommercial(c: Commercial) {
   const lignes = c.lignes.map((l) => ({ ...l, ...ligneTotaux(l) }));
-  const fourniture = lignes.reduce((s, l) => s + l.achatTotal, 0);
+  const fournitureBrute = lignes.reduce((s, l) => s + l.achatTotal, 0);
+  const chute = (fournitureBrute * (c.chutePct ?? 0)) / 100;
+  const fourniture = fournitureBrute + chute;
   const venteLignes = lignes.reduce((s, l) => s + l.venteTotal, 0);
   const par = (t: TypeFrais) => c.frais.filter((f) => f.type === t).reduce((s, f) => s + f.montant, 0);
   const pose = par("pose");
@@ -146,7 +178,7 @@ export function calcCommercial(c: Commercial) {
   const autres = par("autre");
   const fraisTotal = pose + mainOeuvre + livraison + autres;
   const coutTotal = fourniture + fraisTotal;
-  const margeAuto = venteLignes - fourniture;
+  const margeAuto = venteLignes - fournitureBrute;
   const margeBrute =
     c.marge.mode === "auto"
       ? margeAuto
@@ -161,9 +193,12 @@ export function calcCommercial(c: Commercial) {
   const marge = totalHT - coutTotal;
   /** Écart entre prix de vente brut et somme vente lignes + frais (marge forcée). */
   const ajustement = prixVenteBrut - (venteLignes + fraisTotal);
+  // chute matière incluse dans le coût : répercutée dans l'ajustement (marge auto conserve la vente lignes)
   return {
     lignes,
     fourniture,
+    fournitureBrute,
+    chute,
     venteLignes,
     pose,
     mainOeuvre,
@@ -472,3 +507,20 @@ export function statutFactureEffectif(f: Facture, today = new Date().toISOString
   if ((f.statut === "Envoyée" || f.statut === "Générée") && f.echeance && f.echeance < today) return "En retard";
   return f.statut;
 }
+
+
+/* ============================ WhatsApp & recommandations ============================ */
+
+export function lienWhatsApp(tel: string | undefined, message: string) {
+  const n = (tel ?? "").replace(/[^0-9]/g, "").replace(/^0/, "212");
+  return `https://wa.me/${n}?text=${encodeURIComponent(message)}`;
+}
+
+export const MESSAGES_AVANCEMENT = [
+  "Bonjour {client}, votre commande est passée chez notre fournisseur. Nous vous tenons informé. — Strongal",
+  "Bonjour {client}, la fabrication de vos menuiseries a démarré, livraison prévue sous 10 jours. — Strongal",
+  "Bonjour {client}, vos menuiseries sont livrées sur le chantier. — Strongal",
+  "Bonjour {client}, la pose du niveau 1 est terminée. — Strongal",
+  "Bonjour {client}, la pose du niveau 2 est terminée. — Strongal",
+  "Bonjour {client}, les travaux sont terminés, nous planifions la réception avec vous. — Strongal",
+];

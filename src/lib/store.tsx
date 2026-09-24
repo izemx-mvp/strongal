@@ -60,7 +60,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.config) setConfig(s.config);
+        if (s.config)
+          setConfig({
+            ...defaultConfig,
+            ...s.config,
+            profiles: (s.config.profiles ?? defaultConfig.profiles).map((p: Config["profiles"][number]) => ({
+              ...(defaultConfig.profiles.find((x) => x.id === p.id) ?? {}),
+              ...p,
+            })),
+            produits: (s.config.produits ?? defaultConfig.produits).map((p: Config["produits"][number]) => ({
+              ...(defaultConfig.produits.find((x) => x.id === p.id) ?? {}),
+              ...p,
+            })),
+          });
         if (s.dossiers) setDossiers(s.dossiers);
         if (s.factures) setFactures(s.factures);
         if (s.relanceConfig) setRelanceConfig(s.relanceConfig);

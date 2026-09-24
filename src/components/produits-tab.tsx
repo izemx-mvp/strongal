@@ -19,6 +19,10 @@ export function ProduitsTab() {
   const { config, setConfig } = useStore();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
+  const [sys, setSys] = useState("all");
+  const [job, setJob] = useState("all");
+  const systemes = Array.from(new Set(config.produits.map((p) => p.systeme).filter(Boolean))) as string[];
+  const jobs = Array.from(new Set(config.produits.flatMap((p) => p.typesChantier ?? [])));
   const [openId, setOpenId] = useState<string | null>(config.produits[0]?.id ?? null);
 
   const categories = useMemo(
@@ -31,9 +35,11 @@ export function ProduitsTab() {
     return config.produits.filter(
       (p) =>
         (!t || `${p.nom} ${p.categorie} ${p.description}`.toLowerCase().includes(t)) &&
-        (cat === "all" || p.categorie === cat),
+        (cat === "all" || p.categorie === cat) &&
+        (sys === "all" || p.systeme === sys) &&
+        (job === "all" || (p.typesChantier ?? []).includes(job)),
     );
-  }, [config.produits, q, cat]);
+  }, [config.produits, q, cat, sys, job]);
 
   const setProduits = (produits: Produit[]) =>
     setConfig((c: Config) => ({ ...c, produits }));
@@ -73,10 +79,26 @@ export function ProduitsTab() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={sys} onValueChange={setSys}>
+            <SelectTrigger className="w-44 bg-background/70"><SelectValue placeholder="Système" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les systèmes</SelectItem>
+              {systemes.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={job} onValueChange={setJob}>
+            <SelectTrigger className="w-44 bg-background/70"><SelectValue placeholder="Type de chantier" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous chantiers</SelectItem>
+              {jobs.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             onClick={() => {
               setQ("");
+              setSys("all");
+              setJob("all");
               setCat("all");
               toast.success("Filtres réinitialisés");
             }}
@@ -207,6 +229,15 @@ function ProduitCard({
           value={produit.categorie}
           onChange={(e) => patch({ categorie: e.target.value })}
         />
+        <select className="h-9 rounded-md border bg-background px-2 text-sm" value={produit.gamme ?? "Standard"} onChange={(e) => patch({ gamme: e.target.value as Produit["gamme"] })}>
+          <option>Standard</option><option>Décoratif</option><option>Technique</option>
+        </select>
+        <Input className="h-9 w-32" placeholder="Système / marque" value={produit.systeme ?? ""} onChange={(e) => patch({ systeme: e.target.value })} />
+        <Input className="h-9 w-44" placeholder="Villa, Façade…" value={(produit.typesChantier ?? []).join(", ")} onChange={(e) => patch({ typesChantier: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} />
+        <select className="h-9 rounded-md border bg-background px-2 text-sm" value={produit.modeVente ?? "unite"} onChange={(e) => patch({ modeVente: e.target.value as Produit["modeVente"] })}>
+          <option value="ml-largeur">ml (largeur)</option><option value="ml-hauteur">ml (hauteur)</option><option value="m2">m²</option><option value="unite">unité</option>
+        </select>
+        <Input className="h-9 w-full" placeholder="Méthode de chiffrage (comment ce produit est vendu)" value={produit.methode ?? ""} onChange={(e) => patch({ methode: e.target.value })} />
         <span className="text-xs text-muted-foreground">
           {produit.composants.length} composant(s)
         </span>
