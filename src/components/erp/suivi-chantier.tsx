@@ -22,6 +22,8 @@ import {
   PHASES,
   type EtatPhase,
   type Phase,
+  lienWhatsApp,
+  MESSAGES_AVANCEMENT,
 } from "@/lib/erp";
 import { useStore } from "@/lib/store";
 
@@ -123,6 +125,7 @@ export function SuiviChantier({ dossier }: { dossier: Dossier }) {
 
   return (
     <div className="space-y-4">
+      <InformerClient dossier={dossier} />
       <Card className="glass overflow-hidden border-l-4 border-l-warm p-0">
         <div className="flex flex-wrap items-center justify-between gap-4 bg-warm/5 p-5">
           <div>
@@ -255,5 +258,36 @@ export function SuiviChantier({ dossier }: { dossier: Dossier }) {
         </Card>
       </div>
     </div>
+  );
+}
+
+/** Messages d'avancement pré-remplis, envoyés manuellement au client via WhatsApp. */
+function InformerClient({ dossier }: { dossier: Dossier }) {
+  const { updateDossier, utilisateur } = useStore();
+  const [msg, setMsg] = useState(MESSAGES_AVANCEMENT[0].replace("{client}", dossier.client));
+  return (
+    <Card className="glass space-y-2 p-4">
+      <p className="text-sm font-semibold">Informer le client de l'avancement (WhatsApp)</p>
+      <div className="flex flex-wrap gap-1.5">
+        {MESSAGES_AVANCEMENT.map((m, i) => (
+          <button key={i} className="rounded-full border px-2.5 py-1 text-xs hover:bg-accent" onClick={() => setMsg(m.replace("{client}", dossier.client))}>
+            {["Commande passée", "Production", "Livrée", "Pose niveau 1", "Pose niveau 2", "Terminé"][i]}
+          </button>
+        ))}
+      </div>
+      <Textarea rows={2} value={msg} onChange={(e) => setMsg(e.target.value)} />
+      <Button
+        size="sm"
+        disabled={!msg.trim()}
+        onClick={() => {
+          window.open(lienWhatsApp(dossier.telephone, msg), "_blank");
+          updateDossier(dossier.ref, {}, { auteur: utilisateur, action: "Message client", label: `WhatsApp avancement : ${msg.slice(0, 60)}…` });
+          toast.success("WhatsApp ouvert — envoyez le message depuis WhatsApp");
+        }}
+      >
+        Ouvrir dans WhatsApp
+      </Button>
+      {!dossier.telephone && <p className="text-xs text-muted-foreground">Ajoutez le numéro du client dans l'étape Chiffrage (Premier appel).</p>}
+    </Card>
   );
 }
