@@ -101,6 +101,11 @@ export type Produit = {
   vitrageId: string;
   heuresM2: number;
   composants: ComposantProduit[];
+  gamme?: "Standard" | "Décoratif" | "Technique";
+  systeme?: string;
+  typesChantier?: string[];
+  modeVente?: ModeVente;
+  methode?: string;
 };
 
 export type Config = {
@@ -120,6 +125,9 @@ export type Config = {
   margeHautDeGamme: number;
   arrondi: "cm" | "mm";
   validated: boolean;
+  surchargeEtagePct?: number;
+  reglesSavoirFaire?: RegleSavoirFaire[];
+  historiquePrix?: ChangementPrix[];
 };
 
 export type Repere = {
@@ -189,6 +197,10 @@ export type Dossier = {
   suivi?: import("./erp").Suivi;
   relances?: import("./erp").RelanceEnvoyee[];
   demandesClient?: import("./erp").DemandeClient[];
+  telephone?: string;
+  etage?: number;
+  conditionsSite?: ConditionSite[];
+  premierAppel?: { fait: boolean; date?: string; note?: string };
 };
 
 /* ------------------------------ Config par défaut ------------------------------ */
