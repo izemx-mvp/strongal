@@ -243,7 +243,7 @@ function DossierDetail() {
         {/* Workflow administratif / commercial (distinct du suivi chantier) */}
         <Card className="glass glass-hover mb-4 p-5">
           <p className="mb-4 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
-            Statut administratif / commercial du dossier
+            Étapes du dossier
           </p>
            <div className="scroll-slim relative flex justify-between gap-2 overflow-x-auto pb-2">
             <div className="absolute top-4 right-4 left-4 h-1 rounded-full bg-muted" />
@@ -281,10 +281,14 @@ function DossierDetail() {
         <Tabs value={ETAPES[viewStep].tab}>
 
           <TabsContent value="suivi" className="mt-4">
-            <SuiviChantier key={`${dossier.ref}-${viewStep}`} dossier={dossier} />
+            <SuiviChantier key={`${dossier.ref}-${viewStep}`} dossier={dossier} phaseId={ETAPES[viewStep].phaseId} />
           </TabsContent>
           <TabsContent value="factures" className="mt-4">
             <DossierFactures dossier={dossier} />
+            <details className="mt-4 rounded-xl border bg-card/60 p-4">
+              <summary className="cursor-pointer text-sm font-semibold">Garantie / intervention après réception</summary>
+              <div className="mt-3"><SuiviChantier dossier={dossier} phaseId="garantie" compact /></div>
+            </details>
           </TabsContent>
 
           {/* Synthèse */}

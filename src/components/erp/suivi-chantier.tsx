@@ -41,35 +41,23 @@ export function SuiviResume({ dossier }: { dossier: Dossier }) {
   const s = getSuivi(dossier);
   const cur = phaseCourante(s);
   return (
-    <div className="space-y-1.5">
-      {s.phases.slice(0, 7).map((p) => (
-        <div key={p.id} className={`flex items-center gap-2 text-sm ${p.id === cur.id ? "font-semibold" : ""}`}>
-          <EtatIcon etat={p.etat} className="h-4 w-4" />
-          <span className="flex-1">{nomPhase(p.id)}</span>
-          <span className="text-xs text-muted-foreground">
-            {p.etat === "Terminée" ? "TERMINÉE" : p.etat === "En cours" ? `EN COURS · ${p.progression} %` : p.etat === "Bloquée" ? "BLOQUÉE" : "À VENIR"}
-          </span>
-        </div>
-      ))}
-    </div>
+    <p className="flex items-center gap-2 text-sm font-semibold">
+      <EtatIcon etat={cur.etat} className="h-4 w-4" /> {nomPhase(cur.id)} — {cur.progression} %
+      <span className="text-xs font-normal text-muted-foreground">({cur.statut})</span>
+    </p>
   );
 }
 
-export function SuiviChantier({ dossier }: { dossier: Dossier }) {
+export function SuiviChantier({ dossier, phaseId, compact }: { dossier: Dossier; phaseId?: string; compact?: boolean }) {
   const { updateDossier, utilisateur } = useStore();
   const suivi = getSuivi(dossier);
-  const cur = phaseCourante(suivi);
-  const [sel, setSel] = useState(cur.id);
+  const sel = phaseId ?? phaseCourante(suivi).id;
+  const cur = suivi.phases.find((p) => p.id === sel)!;
   const phase = suivi.phases.find((p) => p.id === sel)!;
   const def = PHASES.find((p) => p.id === sel)!;
   const [draft, setDraft] = useState<Phase>(phase);
   const [note, setNote] = useState("");
 
-  const choose = (id: string) => {
-    setSel(id);
-    setDraft(suivi.phases.find((p) => p.id === id)!);
-    setNote("");
-  };
 
   const save = (next: Phase, forceLabel?: string) => {
     const avant = phase;
@@ -125,7 +113,6 @@ export function SuiviChantier({ dossier }: { dossier: Dossier }) {
 
   return (
     <div className="space-y-4">
-      <InformerClient dossier={dossier} />
       <Card className="glass overflow-hidden border-l-4 border-l-warm p-0">
         <div className="flex flex-wrap items-center justify-between gap-4 bg-warm/5 p-5">
           <div>
@@ -147,25 +134,6 @@ export function SuiviChantier({ dossier }: { dossier: Dossier }) {
             </div>
             <p className="mt-1 text-right text-sm font-semibold">{Math.round(avancementGlobal(suivi))} %</p>
           </div>
-        </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-4 lg:grid-cols-8">
-          {suivi.phases.map((p, i) => (
-            <button
-              key={p.id}
-              onClick={() => choose(p.id)}
-              className={`relative rounded-xl border p-3 text-left transition-colors ${sel === p.id ? "border-warm bg-warm/10" : "hover:bg-accent-soft/60"}`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">{i + 1}</span>
-                <EtatIcon etat={p.etat} className="h-4 w-4" />
-              </div>
-              <p className="mt-1 text-xs leading-tight font-semibold">{nomPhase(p.id)}</p>
-              <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
-                <div className={`h-full ${p.etat === "Bloquée" ? "bg-destructive" : "bg-warm"}`} style={{ width: `${p.progression}%` }} />
-              </div>
-              {p.id === cur.id && <span className="absolute -top-2 right-2 rounded-full bg-warm px-1.5 text-[9px] font-bold text-warm-foreground">ACTUELLE</span>}
-            </button>
-          ))}
         </div>
       </Card>
 
@@ -257,6 +225,7 @@ export function SuiviChantier({ dossier }: { dossier: Dossier }) {
           </div>
         </Card>
       </div>
+      {!compact && <InformerClient dossier={dossier} />}
     </div>
   );
 }
@@ -266,7 +235,7 @@ function InformerClient({ dossier }: { dossier: Dossier }) {
   const { updateDossier, utilisateur } = useStore();
   const [msg, setMsg] = useState(MESSAGES_AVANCEMENT[0].replace("{client}", dossier.client));
   return (
-    <Card className="glass space-y-2 p-4">
+    <Card className="glass space-y-2 p-3">
       <p className="text-sm font-semibold">Informer le client de l'avancement (WhatsApp)</p>
       <div className="flex flex-wrap gap-1.5">
         {MESSAGES_AVANCEMENT.map((m, i) => (
