@@ -435,7 +435,35 @@ export const defaultConfig: Config = {
   margeHautDeGamme: 28,
   arrondi: "cm",
   validated: false,
+  surchargeEtagePct: 6,
+  reglesSavoirFaire: [
+    { id: "r1", condition: "vent", titre: "Renfort façade et côtés", conseil: "En zone ventée, prévoir un renfort de dormant sur la façade et les côtés, et des équerres supplémentaires.", prixSuggere: 180, unite: "ml" },
+    { id: "r2", condition: "bruit", titre: "Vitrage acoustique", conseil: "Zone bruyante : proposer un double vitrage acoustique feuilleté 44.2 silence et joints renforcés.", prixSuggere: 420, unite: "m²" },
+    { id: "r3", condition: "mer", titre: "Finition marine", conseil: "Bord de mer : anodisation qualité marine ou laquage Qualimarine, visserie inox A4.", prixSuggere: 90, unite: "ml" },
+    { id: "r4", condition: "hauteur", titre: "Levage et sécurité", conseil: "Étage élevé : prévoir moyen de levage, harnais et une demi-journée d'équipe supplémentaire.", prixSuggere: 1500, unite: "forfait" },
+    { id: "r5", condition: "soleil", titre: "Vitrage contrôle solaire", conseil: "Forte exposition : vitrage à contrôle solaire ou brise-soleil orientable.", prixSuggere: 350, unite: "m²" },
+    { id: "r6", condition: "general", titre: "Mesures réelles", conseil: "Toujours reprendre les mesures finales après enduit : la quantité réellement posée est souvent inférieure au métré brut.", prixSuggere: 0, unite: "" },
+  ],
+  historiquePrix: [],
 };
+
+// Valeurs fournisseur / méthode de vente par défaut (démo, à remplacer par le catalogue réel).
+const FOURNISSEURS = ["Technal", "Schüco", "Sapa", "Aluk"];
+defaultConfig.profiles = defaultConfig.profiles.map((p, i) => ({
+  ...p,
+  fournisseur: p.fournisseur ?? FOURNISSEURS[i % FOURNISSEURS.length],
+  codeFournisseur: p.codeFournisseur ?? `F-${1000 + i * 37}`,
+  modeVente: p.modeVente ?? (i % 3 === 0 ? "m2" : i % 3 === 1 ? "ml-largeur" : "ml-hauteur"),
+  methode: p.methode ?? "Prix de base au ml × ratio de consommation, chute incluse.",
+}));
+defaultConfig.produits = defaultConfig.produits.map((p, i) => ({
+  ...p,
+  gamme: p.gamme ?? (["Standard", "Décoratif", "Technique"] as const)[i % 3],
+  systeme: p.systeme ?? FOURNISSEURS[i % FOURNISSEURS.length],
+  typesChantier: p.typesChantier ?? [["Villa", "Appartement"], ["Villa", "Façade"], ["Portail", "Villa"]][i % 3],
+  modeVente: p.modeVente ?? (i % 2 ? "m2" : "unite"),
+  methode: p.methode ?? "Prix de base × ratio de gamme ; ajuster selon étage et contraintes chantier.",
+}));
 
 export const CHECKLIST_ITEMS = [
   "Dimensions confirmées sur site",
