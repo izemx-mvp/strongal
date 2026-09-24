@@ -23,6 +23,7 @@ import {
   DossierOverview,
 } from "@/components/erp/dossier-erp";
 import { SuiviChantier } from "@/components/erp/suivi-chantier";
+import { ContexteChantier } from "@/components/erp/contexte-chantier";
 import { StatutBadge } from "@/components/badges";
 import { PageTransition, ShimmerBlock } from "@/components/motion-bits";
 import { Button } from "@/components/ui/button";
@@ -348,6 +349,7 @@ function DossierDetail() {
 
           {/* Chiffrage */}
           <TabsContent value="chiffrage" className="mt-4 space-y-4">
+            <ContexteChantier dossier={dossier} />
             {zonesNonValidees.length > 0 && (
               <Card className="glass border-destructive/50 bg-destructive/5 p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold text-destructive">

@@ -14,6 +14,7 @@ import type { Dossier } from "@/lib/data";
 import {
   fmtDate,
   getDevisInfo,
+  lienWhatsApp,
   nowStr,
   planRelances,
   remplirTemplate,
@@ -46,7 +47,7 @@ export function RelanceDialog({
 }) {
   const { templates, updateDossier, utilisateur, config } = useStore();
   const [tpl, setTpl] = useState(templates[0]?.id ?? "");
-  const [canal, setCanal] = useState<RelanceEnvoyee["canal"]>("Email");
+  const [canal, setCanal] = useState<RelanceEnvoyee["canal"]>("WhatsApp");
   const [msg, setMsg] = useState("");
 
   const vars = {
@@ -100,12 +101,17 @@ export function RelanceDialog({
           </Select>
           <Select value={canal} onValueChange={(v) => setCanal(v as RelanceEnvoyee["canal"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{["Email", "WhatsApp", "Téléphone"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent>{["WhatsApp", "Téléphone", "Email"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <Textarea rows={10} value={msg} onChange={(e) => setMsg(e.target.value)} />
         <DialogFooter className="gap-2">
           <Button variant="ghost" onClick={() => record("Ignorée")}>Ignorer cette relance</Button>
+          {canal === "WhatsApp" && (
+            <Button variant="outline" disabled={!msg.trim()} onClick={() => window.open(lienWhatsApp(dossier.telephone, msg), "_blank")}>
+              Ouvrir dans WhatsApp
+            </Button>
+          )}
           <Button className="shine" disabled={!msg.trim()} onClick={() => record("Envoyée")}>
             <Send className="mr-1 h-4 w-4" /> ENVOYER
           </Button>
