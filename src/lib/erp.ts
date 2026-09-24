@@ -124,6 +124,8 @@ export function initCommercial(d: Dossier, config: Config): Commercial {
         unite: "u",
         achatU,
         venteU: Math.round(achatU * (1 + margeTaux / 100)),
+        methode: config.produits.find((p) => p.id === l.produitId)?.methode,
+        modeVente: config.produits.find((p) => p.id === l.produitId)?.modeVente,
       };
     }),
     frais: [
