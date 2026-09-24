@@ -14,6 +14,8 @@ import {
   type Commercial,
   type Frais,
   type LigneCom,
+  OPTIONS_DEFAUT,
+  prixOption,
 } from "@/lib/erp";
 
 export function ManuelBadge({ children }: { children: React.ReactNode }) {
@@ -73,6 +75,7 @@ export function CommercialEditor({
       <Card className="glass p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">Produits / prestations</h3>
+          <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="outline"
@@ -88,13 +91,30 @@ export function CommercialEditor({
           >
             <Plus className="mr-1 h-4 w-4" /> Ajouter une ligne
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              onChange({
+                ...value,
+                lignes: [
+                  ...value.lignes,
+                  { id: uid(), designation: "Demande spéciale — bardage bois / composite", description: "Matériau, finition, fournisseur…", qte: 1, unite: "m²", achatU: 0, venteU: 0, achatManuel: true, venteManuel: true, speciale: true },
+                ],
+              })
+            }
+          >
+            <Plus className="mr-1 h-4 w-4" /> Demande spéciale
+          </Button>
+          </div>
         </div>
         <div className="scroll-slim overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-56">Produit / description</TableHead>
-                <TableHead className="w-20">Qté</TableHead>
+                <TableHead className="w-24">Qté mesurée</TableHead>
+                <TableHead className="w-24">Qté réelle</TableHead>
                 <TableHead className="w-24">Unité</TableHead>
                 {showInternal && <TableHead className="w-28 text-right">Achat U.</TableHead>}
                 {showInternal && <TableHead className="w-32 text-right">Achat total</TableHead>}
@@ -110,11 +130,15 @@ export function CommercialEditor({
                     <Input value={l.designation} onChange={(e) => setLigne(l.id, { designation: e.target.value })} className="h-8 font-medium" />
                     <Input value={l.description} placeholder="Description" onChange={(e) => setLigne(l.id, { description: e.target.value })} className="h-8 text-xs" />
                     <div className="flex flex-wrap gap-1">
+                      {l.speciale && <ManuelBadge>Demande spéciale</ManuelBadge>}
+                      {l.methode && <span className="text-[10px] text-muted-foreground" title={l.methode}>Méthode : {l.methode}</span>}
+                      {l.qteMesuree !== undefined && l.qteMesuree !== l.qte && <ManuelBadge>Qté corrigée</ManuelBadge>}
                       {(l.venteManuel || l.venteTotalManuel !== undefined) && <ManuelBadge>Prix manuel</ManuelBadge>}
                       {showInternal && (l.achatManuel || l.achatTotalManuel !== undefined) && <ManuelBadge>Achat manuel</ManuelBadge>}
                     </div>
                   </TableCell>
-                  <TableCell><NumInput value={l.qte} onChange={(n) => setLigne(l.id, { qte: n })} /></TableCell>
+                  <TableCell><NumInput value={l.qteMesuree ?? l.qte} onChange={(n) => setLigne(l.id, { qteMesuree: n })} /></TableCell>
+                  <TableCell><NumInput value={l.qte} manuel={l.qteMesuree !== undefined && l.qteMesuree !== l.qte} onChange={(n) => setLigne(l.id, { qte: n, qteMesuree: l.qteMesuree ?? l.qte })} /></TableCell>
                   <TableCell><Input value={l.unite} onChange={(e) => setLigne(l.id, { unite: e.target.value })} className="h-8" /></TableCell>
                   {showInternal && (
                     <TableCell><NumInput value={l.achatU} manuel={l.achatManuel} onChange={(n) => setLigne(l.id, { achatU: n, achatManuel: true, achatTotalManuel: undefined })} /></TableCell>
@@ -188,6 +212,19 @@ export function CommercialEditor({
           ))}
         </div>
       </Card>
+
+      {showInternal && (
+        <Card className="glass flex flex-wrap items-end gap-4 p-5">
+          <div>
+            <h3 className="flex items-center font-semibold">Chute matière {!!value.chutePct && <ManuelBadge>{value.chutePct} % inclus</ManuelBadge>}</h3>
+            <p className="text-xs text-muted-foreground">Pertes à la découpe ajoutées au coût fourniture (voir le plan de débitage).</p>
+          </div>
+          <label className="w-32 text-xs">% de chute<NumInput value={value.chutePct ?? 0} onChange={(n) => onChange({ ...value, chutePct: n })} /></label>
+          <p className="text-sm">= {fmt(r.chute)}</p>
+        </Card>
+      )}
+
+      {showInternal && <OptionsDevis value={value} onChange={onChange} />}
 
       <div className={`grid gap-4 ${showInternal ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
         {showInternal && (
@@ -289,7 +326,8 @@ export function RecapFinancier({ c, showInternal = true }: { c: Commercial; show
       <div className={`grid gap-6 ${showInternal ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
         {showInternal && (
           <div>
-            <Row label="Coût fourniture" value={r.fourniture} />
+            <Row label="Coût fourniture" value={r.fournitureBrute} />
+            {r.chute > 0 && <Row sign="+" label={`Chute matière ${fmtNum(c.chutePct ?? 0)} %`} value={r.chute} />}
             <Row sign="+" label="Coût pose" value={r.pose} />
             <Row sign="+" label="Coût main-d'œuvre" value={r.mainOeuvre} />
             <Row sign="+" label="Livraison" value={r.livraison} />
@@ -324,6 +362,68 @@ export function RecapFinancier({ c, showInternal = true }: { c: Commercial; show
           <div><p className="text-xs text-muted-foreground">Prix de vente HT</p><p className="font-bold">{fmt(r.totalHT)}</p></div>
           <div><p className="text-xs text-muted-foreground">Marge nette (après remise)</p><p className={`font-bold ${r.marge < 0 ? "text-destructive" : "text-success"}`}>{fmt(r.marge)}</p></div>
           <div><p className="text-xs text-muted-foreground">Marge % (sur coût) · taux de marque</p><p className="font-bold">{fmtNum(r.margePct, 1)} % · {fmtNum(r.tauxMarque, 1)} %</p></div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/** Prix de base (total HT) × ratio : 4-5 options proposées au client, chacune ajustable à la main. */
+export function OptionsDevis({ value, onChange }: { value: Commercial; onChange: (c: Commercial) => void }) {
+  const base = calcCommercial(value).totalHT;
+  const options = value.options ?? [];
+  const setOpt = (id: string, patch: Partial<(typeof options)[number]>) =>
+    onChange({ ...value, options: options.map((o) => (o.id === id ? { ...o, ...patch } : o)) });
+  return (
+    <Card className="glass space-y-3 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="font-semibold">Options de devis (prix de base × ratio)</h3>
+          <p className="text-xs text-muted-foreground">Prix de base = total HT actuel : {fmt(base)}. Chaque option est modifiable à la main.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {options.length === 0 ? (
+            <Button size="sm" onClick={() => onChange({ ...value, options: OPTIONS_DEFAUT.map((o) => ({ ...o })), optionChoisie: "o1" })}>
+              <Plus className="mr-1 h-4 w-4" /> Générer 5 options
+            </Button>
+          ) : (
+            <>
+              <Button size="sm" variant="outline" onClick={() => onChange({ ...value, options: [...options, { id: uid(), nom: "Nouvelle option", description: "", ratio: 1 }] })}>
+                <Plus className="mr-1 h-4 w-4" /> Option
+              </Button>
+              <label className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={!!value.afficherOptions} onChange={(e) => onChange({ ...value, afficherOptions: e.target.checked })} />
+                Afficher toutes les options sur le devis
+              </label>
+            </>
+          )}
+        </div>
+      </div>
+      {options.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {options.map((o) => {
+            const prix = prixOption(o, base);
+            const actif = value.optionChoisie === o.id;
+            return (
+              <div key={o.id} className={`space-y-2 rounded-xl border p-3 ${actif ? "border-warm bg-warm/5" : ""}`}>
+                <Input value={o.nom} onChange={(e) => setOpt(o.id, { nom: e.target.value })} className="h-8 font-semibold" />
+                <Input value={o.description} placeholder="Contenu de l'option" onChange={(e) => setOpt(o.id, { description: e.target.value })} className="h-8 text-xs" />
+                <label className="block text-xs">Ratio<NumInput value={o.ratio} onChange={(n) => setOpt(o.id, { ratio: n, prixManuel: undefined })} /></label>
+                <label className="block text-xs">Prix HT {o.prixManuel !== undefined && <ManuelBadge>Prix manuel</ManuelBadge>}
+                  <NumInput value={prix} manuel={o.prixManuel !== undefined} onChange={(n) => setOpt(o.id, { prixManuel: n })} />
+                </label>
+                <p className="text-[11px] text-muted-foreground">Écart vs base : {fmt(prix - base)}</p>
+                <div className="flex gap-1">
+                  <Button size="sm" variant={actif ? "default" : "outline"} className="h-7 flex-1 text-xs" onClick={() => onChange({ ...value, optionChoisie: o.id })}>
+                    {actif ? "Choisie" : "Choisir"}
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Supprimer l'option" onClick={() => onChange({ ...value, options: options.filter((x) => x.id !== o.id) })}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </Card>

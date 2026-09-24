@@ -16,6 +16,7 @@ import { LOGO_URL, type DevisVersion, type Dossier } from "@/lib/data";
 import { downloadTexte } from "@/lib/download";
 import {
   calcCommercial,
+  prixOption,
   diffCommercial,
   getCommercial,
   getDevisInfo,
@@ -154,6 +155,19 @@ export function DevisDocument({ info, c, version }: { info: DevisInfo; c: Commer
           )}
         </tbody>
       </table>
+      {c.options && c.options.length > 0 && (
+        <div className="mt-4 rounded-lg border p-3 text-xs">
+          <p className="mb-2 font-semibold">{c.afficherOptions ? "Options proposées" : "Option retenue"}</p>
+          {c.options
+            .filter((o) => c.afficherOptions || o.id === c.optionChoisie)
+            .map((o) => (
+              <div key={o.id} className="flex justify-between border-b py-1 last:border-0">
+                <span><b>{o.nom}</b>{o.description && ` — ${o.description}`}{o.id === c.optionChoisie && c.afficherOptions ? " (recommandée)" : ""}</span>
+                <span>{fmt(prixOption(o, r.totalHT))} HT</span>
+              </div>
+            ))}
+        </div>
+      )}
       <div className="mt-4 ml-auto w-64 space-y-1 text-xs">
         {r.remise > 0 && <div className="flex justify-between"><span>Remise</span><span>-{fmt(r.remise)}</span></div>}
         <div className="flex justify-between"><span>Total HT</span><span>{fmt(r.totalHT)}</span></div>
