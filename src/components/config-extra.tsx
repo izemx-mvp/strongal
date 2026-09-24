@@ -78,7 +78,7 @@ export function PrixFournisseursTab() {
                 <TableHead>Vendu</TableHead>
                 <TableHead className="min-w-56">Méthode de chiffrage</TableHead>
                 <TableHead className="text-right">Prix barre</TableHead>
-                {cible && <TableHead className="text-right">Après {pct} %</TableHead>}
+                <TableHead className="text-right">Après {pct} %</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
